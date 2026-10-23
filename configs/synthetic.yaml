@@ -1,0 +1,16 @@
+# Cấu hình kiểm tra nhanh trên dữ liệu giả lập (scripts/make_synthetic_dataset.py)
+project:
+  output_dir: outputs_synthetic
+  n_jobs: 1
+data:
+  train_dir: data/synthetic/Train
+  test_dir: data/synthetic/Test
+  annotation_dir: data/synthetic/Test
+  val_video_ratio: 0.2
+optical_flow:
+  num_iter: 32
+model:
+  n_prototypes: 600
+  max_support_vectors: 64
+fpga:
+  num_test_vectors: 50

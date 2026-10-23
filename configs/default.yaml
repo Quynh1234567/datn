@@ -1,0 +1,133 @@
+# =============================================================================
+#  Cấu hình mặc định – OC-SVM phát hiện hành vi bất thường (IITB-Corridor → FPGA)
+#  Mọi đường dẫn tương đối được tính từ thư mục gốc của project.
+# =============================================================================
+
+project:
+  name: ocsvm_iitb_corridor
+  seed: 42
+  output_dir: outputs            # cache đặc trưng, mô hình, báo cáo, file .mem
+  n_jobs: 4                      # số tiến trình song song khi trích xuất đặc trưng
+
+# -----------------------------------------------------------------------------
+# 1. Dữ liệu
+# -----------------------------------------------------------------------------
+data:
+  train_dir: data/IITB-Corridor/Train        # 208 video .avi bình thường (tìm đệ quy)
+  test_dir:  data/IITB-Corridor/Test         # video kiểm thử (có thể không có)
+  annotation_dir: data/IITB-Corridor/Test    # nơi chứa nhãn khung hình (tìm đệ quy)
+  video_extensions: [".avi", ".mp4", ".mov"]  # các định dạng video được chấp nhận
+  # Các tên file nhãn được thử lần lượt ({stem} = tên video không đuôi)
+  annotation_patterns: ["{stem}.npy", "{stem}_gt.npy", "{stem}.txt", "{stem}.csv", "{stem}.mat"]
+  # File phân loại video Test (vd test.txt: "CarryObject_3 000209") → báo cáo AUC theo từng loại
+  test_class_file: data/IITB-Corridor/test.txt
+  val_video_ratio: 0.10          # tách 10% video Train làm tập validation bình thường
+  max_videos: null               # giới hạn số video mỗi tập (debug); null = dùng hết
+
+# -----------------------------------------------------------------------------
+# 2. Tiền xử lý khung hình – PHẢI khớp với ESP32-S3 + OV5640 khi demo
+# -----------------------------------------------------------------------------
+preprocess:
+  width: 160                     # QQVGA của OV5640 (160x120, GRAYSCALE)
+  height: 120
+  aspect_mode: crop              # crop: cắt giữa về đúng tỉ lệ rồi resize | stretch
+  frame_step: 2                  # lấy 1 khung / 2 khung  (IITB 25 fps → 12.5 fps)
+  cache_frames: true             # lưu khung 160x120 đã giải mã → đổi tham số HS/đặc trưng
+                                 # không phải giải mã lại video 1080p (tốn ~2–4 GB đĩa)
+  skip_dark_below: 15            # bỏ khung gần như đen (độ sáng TB < ngưỡng, vd khung 0 của IITB); 0 = tắt
+  gaussian_ksize: 5              # làm mượt trước khi tính đạo hàm (0 = tắt)
+  gaussian_sigma: 1.0
+
+# -----------------------------------------------------------------------------
+# 3. Dòng quang học Horn–Schunck  (phương trình (42) trong bài báo)
+# -----------------------------------------------------------------------------
+optical_flow:
+  alpha: 2.0                     # γ – hệ số phạt độ mượt (thang cường độ 0..255)
+  num_iter: 64                   # số vòng lặp Jacobi cố định → dễ port sang C/ESP32
+  intensity_scale: 1.0           # giữ thang 0..255 (đã kiểm chứng: dịch 1px → u≈0.97)
+  # Thuật toán dòng quang học: hs (Horn–Schunck – chạy được trên ESP32, mặc định)
+  #                            farneback (OpenCV, đa tỉ lệ – chỉ dùng cho thí nghiệm so sánh trên PC)
+  method: hs
+  fb_pyr_scale: 0.5              # tham số Farneback (chỉ dùng khi method = farneback)
+  fb_levels: 3
+  fb_winsize: 15
+  fb_iterations: 3
+  fb_poly_n: 5
+  fb_poly_sigma: 1.2
+
+# -----------------------------------------------------------------------------
+# 4. Đặc trưng điểm ảnh & ma trận hiệp biến  (Bảng 1, phương trình (44))
+# -----------------------------------------------------------------------------
+features:
+  # Loại véc-tơ đặc trưng:
+  #   covariance: ma trận hiệp biến + Log-Euclidean (phương pháp chính của đồ án)
+  #   grid_flow : thống kê dòng quang học theo lưới ô (ĐƯỜNG CƠ SỞ để so sánh)
+  descriptor: covariance
+  grid_rows: 4                   # chỉ dùng khi descriptor = grid_flow
+  grid_cols: 4
+  grid_stats: basic              # basic: [u, v, |v|] mỗi ô (144 chiều) | rich: + [max|v|, std|v|] (240 chiều)
+  # ---- các tham số dưới đây chỉ dùng cho descriptor = covariance ----
+  feature_set: F4                # F1 | F2 | F3 | F4
+  pixel_stride: 2                # lấy mẫu điểm ảnh theo lưới (1 = mọi điểm ảnh)
+  border: 2                      # bỏ viền (đạo hàm bậc 2 nhiễu ở biên)
+  normalize_coords: true         # x,y chia cho W,H → cùng thang đo với u,v
+  motion_threshold: 0.0          # >0: chỉ lấy điểm có |flow| > ngưỡng (0 = lấy hết)
+  # Mọi ngưỡng trong lưới được tính SẴN trong một lần trích xuất (thêm ~10% thời gian).
+  # Đổi motion_threshold sang một giá trị trong lưới → KHÔNG phải trích xuất lại.
+  motion_threshold_grid: [0.0, 0.1, 0.2, 0.3, 0.5, 0.8]
+  min_motion_pixels: 50          # nếu ít điểm chuyển động hơn → dùng toàn bộ lưới
+  cov_epsilon: 1.0e-6            # C + εI để đảm bảo xác định dương (SPD)
+  # Ánh xạ nhóm Lie → không gian tiếp tuyến (Log-Euclidean):
+  #   vec = vech(logm(C)), phần tử ngoài đường chéo nhân √2
+  #   ⇒ ||vec_i − vec_j||² = ||log C_i − log C_j||_F²
+  #   ⇒ RBF Euclid trên vec ≡ kernel Gauss Log-Euclidean (xấp xỉ phương trình (45))
+  log_euclidean: true
+
+# -----------------------------------------------------------------------------
+# 5. Huấn luyện mô hình
+# -----------------------------------------------------------------------------
+model:
+  type: ocsvm                    # ocsvm (Schölkopf – thuật toán chính) | ls_ocsvm (bài báo)
+  nu: 0.02
+  gamma: 0.042                   # = 2/48 (gấp đôi gamma "scale" của 48 chiều)
+  # Ràng buộc phần cứng: số Support Vector tối đa nạp vào BRAM của FPGA
+  max_support_vectors: 128
+  # Nén tập huấn luyện bằng MiniBatchKMeans (trọng số mẫu = số phần tử mỗi cụm)
+  n_prototypes: 3000             # tự giảm dần nếu số SV vượt ngân sách
+  max_train_samples: 200000      # giới hạn số mẫu đưa vào KMeans
+  # Tham số riêng cho LS-OC-SVM thưa (mục 3.2 & 3.4 bài báo)
+  ls_C: 10.0                     # hệ số phạt C trong (4)
+  coherence_mu0: 0.5             # ngưỡng coherence μ0 trong (32)
+
+# Tìm siêu tham số (nu, gamma) trên tập validation có nhãn (tách từ tập Test)
+tuning:
+  enabled: false
+  val_test_ratio: 0.3            # 30% video Test làm validation, 70% còn lại để báo cáo
+  nu_grid: [0.01, 0.02, 0.05, 0.1]
+  gamma_scale_grid: [0.25, 0.5, 1.0, 2.0, 4.0]   # hệ số nhân với gamma="scale"
+
+# -----------------------------------------------------------------------------
+# 6. Ngưỡng quyết định
+# -----------------------------------------------------------------------------
+threshold:
+  # zero      : f(x) < 0 là bất thường (mặc định của OC-SVM)
+  # percentile: ngưỡng = phân vị `percentile` (%) điểm số validation bình thường
+  # max_train : như bài báo (T_dis = khoảng cách lớn nhất của mẫu huấn luyện)
+  method: percentile
+  percentile: 1.0                # ≈1% báo động giả trên dữ liệu bình thường
+  temporal_smoothing: 5          # trung bình trượt điểm số theo thời gian (1 = tắt)
+
+# -----------------------------------------------------------------------------
+# 7. Lượng tử hóa điểm cố định & xuất file cho FPGA
+# -----------------------------------------------------------------------------
+fpga:
+  data_width: 16                 # x, SV: số có dấu, Q5.10 → phạm vi ±32
+  data_frac: 10
+  coef_width: 16                 # hệ số α (chuẩn hóa max|α| = 1): Q1.14 có dấu
+  coef_frac: 14
+  gamma_width: 16                # γ không dấu, số bit lẻ tự chọn để dùng hết 16 bit
+  exp_lut_addr_bits: 10          # LUT exp(−t): 1024 phần tử
+  exp_lut_t_max: 16              # t ≥ 16 → exp(−t) ≈ 0 (phải là lũy thừa của 2)
+  exp_lut_width: 16              # giá trị LUT không dấu Q0.16
+  acc_width: 48                  # độ rộng bộ cộng dồn điểm số
+  num_test_vectors: 200          # số vector kiểm thử xuất cho testbench

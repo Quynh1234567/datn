@@ -1,0 +1,11 @@
+# umn_folder – sinh bởi scripts/11_prepare_folder_dataset.py (nhãn mức video)
+project:
+  output_dir: outputs_umn_folder
+data:
+  train_dir: data/umn_folder/Train
+  test_dir: data/umn_folder/Test
+  annotation_dir: data/umn_folder/Test
+  test_class_file: data/umn_folder/test.txt
+  val_video_ratio: 0.0
+preprocess:
+  frame_step: 2                  # fps trung vị 25 → ~12.5 khung/s

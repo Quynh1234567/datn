@@ -1,0 +1,11 @@
+# UMN – sinh bởi scripts/10_prepare_umn.py
+project:
+  output_dir: outputs_umn
+data:
+  train_dir: data/UMN_prepared/Train
+  test_dir: data/UMN_prepared/Test
+  annotation_dir: data/UMN_prepared/Test
+  test_class_file: data/UMN_prepared/test.txt
+  val_video_ratio: 0.0           # ít video train ngắn → ngưỡng lấy từ điểm số train
+preprocess:
+  frame_step: 2                  # UMN 30 fps → 15 fps

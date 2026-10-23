@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ocsvm-fpga"
+version = "1.0.0"
+description = "One-Class SVM anomaly detection on IITB-Corridor with fixed-point export for an FPGA accelerator"
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.23", "scipy>=1.9", "opencv-python>=4.6", "scikit-learn>=1.2",
+                "PyYAML>=6.0", "joblib>=1.2", "matplotlib>=3.6", "tqdm>=4.64"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
