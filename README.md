@@ -189,4 +189,4 @@ Các phép so sánh `covariance` và `grid_flow` là **thí nghiệm phụ**, kh
 
 ---
 
-**Trạng thái:** README này phản ánh cấu hình `descriptor: grid_flow`, `grid_rows: 4`, `grid_cols: 4`, `grid_stats: basic` trong `default.yaml` được cung cấp. Việc firmware/RTL đã đồng bộ sang **DIM=48** hay chưa phải được xác minh trên mã nguồn thực tế trước khi kết luận tích hợp thành công.
+
