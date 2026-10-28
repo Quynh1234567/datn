@@ -1,0 +1,14 @@
+// Tang Nano 9K (GW1NR-LV9QN88PC6/I5) – KIỂM TRA LẠI chân theo schematic / ví dụ của Sipeed trước khi nạp
+// UART dùng cầu USB-UART BL702 trên board → cắm USB là thấy cổng COM trên PC
+IO_LOC  "clk" 52;           // thạch anh 27 MHz
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "rst_n" 4;          // nút S1 (tích cực mức thấp)
+IO_PORT "rst_n" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+IO_LOC  "uart_tx" 17;       // FPGA → BL702 (PC nhận)
+IO_PORT "uart_tx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "uart_rx" 18;       // BL702 → FPGA (PC gửi)
+IO_PORT "uart_rx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "led_busy_n" 10;
+IO_PORT "led_busy_n" IO_TYPE=LVCMOS18 PULL_MODE=UP DRIVE=8;
+IO_LOC  "led_anomaly_n" 11;
+IO_PORT "led_anomaly_n" IO_TYPE=LVCMOS18 PULL_MODE=UP DRIVE=8;

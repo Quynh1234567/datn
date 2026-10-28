@@ -46,3 +46,31 @@ def get_splits(cfg, out: Path, rng: np.random.Generator, rebuild: bool = False) 
     save_json({k: [{"path": str(i.path), "labels": str(i.labels_path) if i.labels_path else None}
                    for i in v] for k, v in splits.items()}, path)
     return splits
+
+
+def expected_feature_dim(cfg) -> int:
+    """Số chiều véc-tơ đặc trưng mà cấu hình hiện tại sẽ tạo ra."""
+    f = cfg.features
+    if f.get("descriptor", "covariance") == "grid_flow":
+        from .features.grid_flow import grid_dim
+        return grid_dim(f, int(cfg.preprocess.height), int(cfg.preprocess.width))
+    from .features.covariance import descriptor_dim
+    return descriptor_dim(f.feature_set)
+
+
+def load_detector_checked(cfg, out: Path):
+    """Nạp outputs/models/detector.joblib và dừng với hướng dẫn rõ ràng nếu số chiều của mô hình
+    không khớp cấu hình hiện tại (vd đổi grid_diff / biên lưới mà chưa huấn luyện lại)."""
+    import sys
+    from .models.base import AnomalyDetector
+    path = out / "models" / "detector.joblib"
+    if not path.exists():
+        sys.exit(f"Chưa có mô hình {path} – chạy scripts/02_train.py trước")
+    det = AnomalyDetector.load(path)
+    got, want = int(det.model.support_vectors.shape[1]), expected_feature_dim(cfg)
+    if got != want:
+        sys.exit(f"Mô hình đã lưu có {got} chiều nhưng cấu hình hiện tại tạo véc-tơ {want} chiều.\n"
+                 "→ Huấn luyện lại với CÙNG cấu hình trước, ví dụ:\n"
+                 "   python scripts/02_train.py --set <các tham số --set y hệt lệnh này>\n"
+                 "hoặc bỏ các --set đặc trưng để dùng đúng cấu hình đã huấn luyện mô hình.")
+    return det

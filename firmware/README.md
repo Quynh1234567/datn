@@ -7,6 +7,8 @@ firmware/
 │   ├── ocsvm_soft.h/.c        # OC-SVM số nguyên trên CPU, bit-exact với FPGA (baseline đo tăng tốc)
 │   ├── test_pc.c              # chương trình kiểm thử trên PC (dùng bởi scripts/07_check_c_port.py)
 │   └── CMakeLists.txt         # thành phần ESP-IDF
+├── esp32_camview/             # xem camera MÀU 640×480 trực tiếp qua Wi-Fi (MJPEG, trình duyệt)
+├── esp32_camtest/             # kiểm tra board mới: chip/flash/PSRAM, mã cảm biến OV5640, fps, gửi ảnh về PC
 └── esp32_app/                 # project ESP-IDF mẫu: OV5640 → đặc trưng → UART → FPGA → LED cảnh báo
     ├── CMakeLists.txt  sdkconfig.defaults
     └── main/app_main.c  main/CMakeLists.txt  main/idf_component.yml

@@ -28,7 +28,13 @@ def fit_detector(x_train: np.ndarray, cfg, rng: np.random.Generator, nu: float |
         raise ValueError(f"model.type không hỗ trợ: {m.type}")
     det = AnomalyDetector(scaler=scaler, model=km, smoothing=int(cfg.threshold.temporal_smoothing),
                           meta={"model_type": m.type, "nu": nu, "gamma": gamma,
-                                "feature_set": cfg.features.feature_set, **info})
+                                "feature_set": cfg.features.feature_set,
+                                # cấu hình đặc trưng lúc huấn luyện – để kiểm tra khi dùng lại mô hình
+                                "descriptor": cfg.features.get("descriptor", "covariance"),
+                                "grid": [cfg.features.get("grid_rows"), cfg.features.get("grid_cols"),
+                                         cfg.features.get("grid_stats")],
+                                "frame_step": cfg.preprocess.frame_step,
+                                "flow": cfg.optical_flow.get("method", "hs"), **info})
     det.meta["_train_scores"] = det.score(x_train[: min(len(x_train), 20000)], smooth=False)
     return det, info
 
@@ -57,6 +63,14 @@ def calibrate_threshold(det: AnomalyDetector, cfg, val: dict | None, logger=None
         raise ValueError(f"threshold.method không hỗ trợ: {method}")
     det.threshold = thr
     det.meta["threshold_method"] = method
+    # tham số cảnh báo có trễ (ngưỡng tắt, thời gian giữ) – tính trên cùng điểm bình thường
+    from ..evaluation.events import alarm_params
+    normal = (det.score(val["X"], val["video_id"]) if val is not None and len(val["X"]) else train_scores)
+    det.meta.pop("alarm", None)
+    det.meta["alarm"] = alarm_params(det, cfg, normal)
+    if logger and det.meta["alarm"]["hold"]:
+        a = det.meta["alarm"]
+        logger.info(f"  Cảnh báo có trễ: bật > {a['on']:.4f}, tắt < {a['off']:.4f} liên tục {a['hold']} cặp khung")
     return thr
 
 

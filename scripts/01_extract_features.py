@@ -27,10 +27,10 @@ def main():
     jobs = args.jobs or int(cfg.project.n_jobs)
     fs = cfg.features.feature_set
     if cfg.features.get("descriptor", "covariance") == "grid_flow":
-        from ocsvm_fpga.features.grid_flow import grid_descriptor_dim
+        from ocsvm_fpga.features.grid_flow import grid_dim
         f = cfg.features
-        log.info(f"Đặc trưng lưới {f.grid_rows}×{f.grid_cols} ({f.grid_stats}) → véc-tơ "
-                 f"{grid_descriptor_dim(f.grid_rows, f.grid_cols, f.grid_stats)} chiều | "
+        log.info(f"Đặc trưng lưới ({f.get('grid_stats', 'basic')}{', diff' if f.get('grid_diff') else ''}) → véc-tơ "
+                 f"{grid_dim(f, int(cfg.preprocess.height), int(cfg.preprocess.width))} chiều | cache theo khối 10×10 | "
                  f"dòng quang học = {cfg.optical_flow.get('method', 'hs')} | cache = {feature_signature(cfg)}")
     else:
         log.info(f"Tập đặc trưng {fs}: d = {feature_dim(fs)} → C {feature_dim(fs)}×{feature_dim(fs)} "

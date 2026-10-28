@@ -1,0 +1,15 @@
+// Tang Nano 9K (GW1NR-LV9QN88PC6/I5) – KIỂM TRA LẠI chân theo schematic / ví dụ của Sipeed trước khi nạp
+// BẢN NỐI ESP32-S3: UART đi qua chân header 25/26 (không qua chip USB-UART BL702)
+IO_LOC  "clk" 52;           // thạch anh 27 MHz
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "rst_n" 4;          // nút S1 (tích cực mức thấp)
+IO_PORT "rst_n" IO_TYPE=LVCMOS18 PULL_MODE=UP;
+IO_LOC  "uart_tx" 26;       // FPGA → ESP32 GPIO14 (RX) – chân header, bank 3,3 V
+IO_PORT "uart_tx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "uart_rx" 25;       // ESP32 GPIO1 (TX) → FPGA – chân header, bank 3,3 V
+IO_PORT "uart_rx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "led_busy_n" 10;
+IO_PORT "led_busy_n" IO_TYPE=LVCMOS18 PULL_MODE=UP DRIVE=8;
+IO_LOC  "led_anomaly_n" 11;
+IO_PORT "led_anomaly_n" IO_TYPE=LVCMOS18 PULL_MODE=UP DRIVE=8;
+// (tùy chọn) nếu top có cổng led_heartbeat_n:  IO_LOC "led_heartbeat_n" 13;  IO_PORT "led_heartbeat_n" IO_TYPE=LVCMOS18 PULL_MODE=UP DRIVE=8;

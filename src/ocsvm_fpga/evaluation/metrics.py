@@ -40,6 +40,18 @@ def per_video_auc(y: np.ndarray, score: np.ndarray, video_id: np.ndarray) -> flo
     return float(np.mean(aucs)) if aucs else None
 
 
+def video_level_auc(y: np.ndarray, score: np.ndarray, video_id: np.ndarray, agg: str = "mean"):
+    """AUC mức VIDEO: điểm video = trung bình (hoặc max) điểm khung; nhãn video = 1 nếu có khung bất thường.
+    Dùng cho các bộ chỉ có nhãn cả video (vd thư mục Normal/Abnormal)."""
+    vids = np.unique(video_id)
+    f = np.mean if agg == "mean" else np.max
+    vs = np.array([f(score[video_id == v]) for v in vids])
+    vy = np.array([int(y[video_id == v].max()) for v in vids])
+    if len(np.unique(vy)) < 2:
+        return None
+    return float(roc_auc_score(vy, vs)), int((vy == 0).sum()), int((vy == 1).sum())
+
+
 def per_class_auc(y: np.ndarray, score: np.ndarray, cls: np.ndarray) -> dict[str, float]:
     """AUC từng loại hành vi: khung của video loại đó + khung của các video "Normal"."""
     out = {}

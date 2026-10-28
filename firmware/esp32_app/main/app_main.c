@@ -23,10 +23,16 @@
 
 #define USE_FPGA        1
 #define FPGA_UART       UART_NUM_1
-#define UART_TX_PIN     GPIO_NUM_43
-#define UART_RX_PIN     GPIO_NUM_44
-#define UART_BAUD       921600
-#define ALARM_LED_PIN   GPIO_NUM_2
+/* Noi day voi Tang Nano 9K (xem huong dan phan cung, muc 6):
+ *   ESP32 GPIO1  (TX) -> Tang Nano chan 25 (uart_rx cua FPGA)
+ *   ESP32 GPIO14 (RX) <- Tang Nano chan 26 (uart_tx cua FPGA)
+ *   GND <-> GND
+ * Khong dung GPIO43/44: la UART0 noi chip USB-serial / console cua nhieu board. */
+#define UART_TX_PIN     GPIO_NUM_1
+#define UART_RX_PIN     GPIO_NUM_14
+#define UART_BAUD       115200          /* PHAI trung --baud khi chay 15_export_rtl.py (mac dinh 115200) */
+#define ALARM_LED_PIN   GPIO_NUM_2      /* LED ngoai: GPIO2 -> dien tro 330 ohm -> LED -> GND */
+#define BUZZER_PIN      GPIO_NUM_21     /* tuy chon: module coi chu dong (IN), 3.3 V; -1 neu khong dung */
 
 static const char *TAG = "ocsvm";
 
@@ -79,12 +85,15 @@ void app_main(void)
     ESP_ERROR_CHECK(camera_init());
     uart_init();
     gpio_set_direction(ALARM_LED_PIN, GPIO_MODE_OUTPUT);
+    if (BUZZER_PIN >= 0) gpio_set_direction(BUZZER_PIN, GPIO_MODE_OUTPUT);
 
     static ofe_ctx_t ctx;
     static ofe_result_t res;
     static ofe_smoother_t sm;
+    static ofe_alarm_t al;
     if (ofe_init(&ctx, psram_alloc) != 0) { ESP_LOGE(TAG, "Khong du PSRAM"); return; }
     ofe_smoother_init(&sm);
+    ofe_alarm_init(&al);
 
     uint32_t frame_no = 0;
     while (1) {
@@ -116,8 +125,9 @@ void app_main(void)
 #endif
         int64_t t2 = esp_timer_get_time();
         double f_s = ofe_smoother_push(&sm, ofe_fq_to_float(f_q));
-        int alarm = ofe_is_alarm(f_s);
+        int alarm = ofe_alarm_update(&al, f_s);          /* canh bao co tre (hysteresis) */
         gpio_set_level(ALARM_LED_PIN, alarm);
+        if (BUZZER_PIN >= 0) gpio_set_level(BUZZER_PIN, alarm);
         ESP_LOGI(TAG, "#%lu feat=%lldus svm=%lldus f=%.4f f_s=%.4f raw=%d ALARM=%d motion=%.3f",
                  (unsigned long)frame_no++, t1 - t0, t2 - t1, ofe_fq_to_float(f_q), f_s, flag, alarm,
                  res.mean_motion);

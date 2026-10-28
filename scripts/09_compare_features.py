@@ -120,7 +120,12 @@ def run_variant(name, overrides, args, log, exp_dir):
     stems = [it.path.stem for it in splits["test"]]
     cls = np.array([classes.get(stems[v], "?") for v in vid]) if classes else np.array(["?"] * len(vid))
     pc = per_class_auc(y, s, cls) if classes else {}
-    far_val = float(np.mean(det.score(val["X"], val["video_id"]) > thr)) if len(val["X"]) else float("nan")
+    sv_val = det.score(val["X"], val["video_id"]) if len(val["X"]) else None
+    far_val = float(np.mean(sv_val > thr)) if sv_val is not None else float("nan")
+    from ocsvm_fpga.evaluation.events import alarm_params, alarm_settings, event_metrics, hysteresis_per_video
+    apx = alarm_params(det, cfg, sv_val)
+    held = hysteresis_per_video(s, vid, apx["on"], apx["off"], apx["hold"])
+    evm = event_metrics(y, held, vid, test["frame_idx"], alarm_settings(cfg)["video_fps"])
 
     # ---- kiểm chứng điểm cố định trên một tập con (bit-accurate như FPGA)
     fx = FixedPointOCSVM(det, cfg.fpga)
@@ -150,6 +155,8 @@ def run_variant(name, overrides, args, log, exp_dir):
         "auc": m.get("auc"), "auc_ci95": ci, "auc_raw": float(roc_auc_score(y, s_raw)),
         "eer": m.get("eer"), "precision": m["precision"], "recall": m["recall"], "f1": m["f1"],
         "far_val": far_val, "per_class_auc": pc,
+        "event_recall": evm["event_recall"], "fa_per_hour": evm["false_alarms_per_hour"],
+        "event_delay_s": evm["delay_median_s"],
         "auc_fixed_subset": auc_fix, "auc_float_subset": auc_float_sub,
         "input_saturated_rows": sat_rows, "input_saturated_elems": int(n_sat),
         "sv_mem_kb": sv_kb, "mac_per_frame": macs, "latency_seq_us": lat_seq_us,
@@ -173,7 +180,7 @@ def write_outputs(reps, rocs, exp_dir, log):
     import matplotlib.pyplot as plt
 
     cols = [("Biến thể", "label"), ("Số chiều", "dim"), ("SV", "n_sv"), ("AUC", "auc"),
-            ("AUC thô", "auc_raw"), ("EER", "eer"), ("Báo động giả val", "far_val"),
+            ("AUC thô", "auc_raw"), ("EER", "eer"), ("Báo động giả val", "far_val"), ("Phát hiện sự kiện", "event_recall"), ("Báo giả/giờ", "fa_per_hour"), ("Trễ (s)", "event_delay_s"),
             ("AUC float/fixed (tập con, thô)", "auc_float_fixed"), ("Véc-tơ bão hòa", "input_saturated_rows"),
             ("Bộ nhớ SV (KB)", "sv_mem_kb"), ("MAC/khung", "mac_per_frame"), ("Bộ nhân song song", "dsp_parallel"),
             ("Trễ tuần tự (µs)", "latency_seq_us"), ("Trễ song song (µs)", "latency_par_us"),
@@ -184,7 +191,7 @@ def write_outputs(reps, rocs, exp_dir, log):
 
     def fmt(k, v):
         if isinstance(v, float):
-            if k in ("far_val", "input_saturated_rows"):
+            if k in ("far_val", "input_saturated_rows", "event_recall"):
                 return f"{v:.2%}"
             return f"{v:.4f}" if k.startswith("auc") or k == "eer" else f"{v:.1f}"
         return str(v)

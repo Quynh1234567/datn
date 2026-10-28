@@ -62,10 +62,13 @@ features:
   # Loại véc-tơ đặc trưng:
   #   covariance: ma trận hiệp biến + Log-Euclidean (phương pháp chính của đồ án)
   #   grid_flow : thống kê dòng quang học theo lưới ô (ĐƯỜNG CƠ SỞ để so sánh)
-  descriptor: covariance
+  descriptor: grid_flow
+  # ---- các tham số dưới đây chỉ dùng cho descriptor = grid_flow ----
   grid_rows: 4                   # chỉ dùng khi descriptor = grid_flow
   grid_cols: 4
   grid_stats: basic              # basic: [u, v, |v|] mỗi ô (144 chiều) | rich: + [max|v|, std|v|] (240 chiều)
+  grid_log_scale: 0.5
+
   # ---- các tham số dưới đây chỉ dùng cho descriptor = covariance ----
   feature_set: F4                # F1 | F2 | F3 | F4
   pixel_stride: 2                # lấy mẫu điểm ảnh theo lưới (1 = mọi điểm ảnh)
@@ -114,10 +117,22 @@ threshold:
   # percentile: ngưỡng = phân vị `percentile` (%) điểm số validation bình thường
   # max_train : như bài báo (T_dis = khoảng cách lớn nhất của mẫu huấn luyện)
   method: percentile
-  percentile: 1.0                # ≈1% báo động giả trên dữ liệu bình thường
-  temporal_smoothing: 5          # trung bình trượt điểm số theo thời gian (1 = tắt)
+  percentile: 2.0                # ≈1% báo động giả trên dữ liệu bình thường
+  temporal_smoothing: 3          # trung bình trượt điểm số theo thời gian (1 = tắt)
 
 # -----------------------------------------------------------------------------
+
+
+alarm:
+  off_percentile: 85
+  hysteresis: true
+  off_margin: 0.5
+  hold_seconds: 1.0
+  video_fps: 25
+
+
+
+
 # 7. Lượng tử hóa điểm cố định & xuất file cho FPGA
 # -----------------------------------------------------------------------------
 fpga:

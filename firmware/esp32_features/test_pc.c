@@ -14,7 +14,7 @@ static void *pc_alloc(size_t n) { return malloc(n); }
 static double now_ms(void)
 {
     struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
+    timespec_get(&ts, TIME_UTC);                 /* C11 – chạy được với gcc, MinGW (Windows) và MSVC */
     return ts.tv_sec * 1e3 + ts.tv_nsec / 1e6;
 }
 

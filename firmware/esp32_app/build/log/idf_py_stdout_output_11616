@@ -1,0 +1,145 @@
+ESP-ROM:esp32s3-20210327
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x8 (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2810,len:0x1828
+load:0x403c8700,len:0x4
+load:0x403c8704,len:0xce8
+load:0x403cb700,len:0x2eb8
+entry 0x403c8918
+[0;32mI (27) boot: ESP-IDF HEAD-HASH-NOTFOUND 2nd stage bootloader[0m
+[0;32mI (27) boot: compile time Oct 28 2026 13:41:19[0m
+[0;32mI (27) boot: Multicore bootloader[0m
+[0;32mI (31) boot: chip revision: v0.2[0m
+[0;32mI (35) boot: efuse block revision: v1.4[0m
+[0;32mI (39) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (44) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (49) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (53) boot: Enabling RNG early entropy source...[0m
+[0;32mI (59) boot: Partition Table:[0m
+[0;32mI (62) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (70) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (77) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (85) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (92) boot: End of partition table[0m
+[0;32mI (96) esp_image: segment 0: paddr=00010020 vaddr=3c030020 size=12bd8h ( 76760) map[0m
+[0;32mI (119) esp_image: segment 1: paddr=00022c00 vaddr=3fc94600 size=05c78h ( 23672) load[0m
+[0;32mI (124) esp_image: segment 2: paddr=00028880 vaddr=40374000 size=07798h ( 30616) load[0m
+[0;32mI (132) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=27824h (161828) map[0m
+[0;32mI (163) esp_image: segment 4: paddr=0005784c vaddr=4037b798 size=08d98h ( 36248) load[0m
+[0;32mI (178) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (178) boot: Disabling RNG early entropy source...[0m
+[0;32mI (190) octal_psram: vendor id    : 0x0d (AP)[0m
+[0;32mI (190) octal_psram: dev id       : 0x02 (generation 3)[0m
+[0;32mI (190) octal_psram: density      : 0x03 (64 Mbit)[0m
+[0;32mI (195) octal_psram: good-die     : 0x01 (Pass)[0m
+[0;32mI (201) octal_psram: Latency      : 0x01 (Fixed)[0m
+[0;32mI (206) octal_psram: VCC          : 0x01 (3V)[0m
+[0;32mI (211) octal_psram: SRF          : 0x01 (Fast Refresh)[0m
+[0;32mI (217) octal_psram: BurstType    : 0x01 (Hybrid Wrap)[0m
+[0;32mI (223) octal_psram: BurstLen     : 0x01 (32 Byte)[0m
+[0;32mI (228) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)[0m
+[0;32mI (234) octal_psram: DriveStrength: 0x00 (1/1)[0m
+[0;32mI (240) MSPI Timing: PSRAM timing tuning index: 4[0m
+[0;32mI (245) esp_psram: Found 8MB PSRAM device[0m
+[0;32mI (249) esp_psram: Speed: 80MHz[0m
+[0;32mI (253) cpu_start: Multicore app[0m
+[0;32mI (664) esp_psram: SPI SRAM memory test OK[0m
+[0;32mI (673) cpu_start: Pro cpu start user code[0m
+[0;32mI (673) cpu_start: cpu freq: 240000000 Hz[0m
+[0;32mI (673) app_init: Application information:[0m
+[0;32mI (676) app_init: Project name:     ocsvm_demo[0m
+[0;32mI (681) app_init: App version:      6894f9c-dirty[0m
+[0;32mI (686) app_init: Compile time:     Oct 28 2026 13:36:06[0m
+[0;32mI (692) app_init: ELF file SHA256:  34dc30f43...[0m
+[0;32mI (697) app_init: ESP-IDF:          HEAD-HASH-NOTFOUND[0m
+[0;32mI (703) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (708) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (713) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (718) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (725) heap_init: At 3FC9B030 len 0004E6E0 (313 KiB): RAM[0m
+[0;32mI (731) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (737) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (743) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM[0m
+[0;32mI (750) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator[0m
+[0;32mI (758) spi_flash: detected chip: boya[0m
+[0;32mI (761) spi_flash: flash io: dio[0m
+[0;33mW (765) spi_flash: Detected size(16384k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;33mW (778) i2c: This driver is an old driver, please migrate your application code to adapt `driver/i2c_master.h`[0m
+[0;32mI (789) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (796) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (803) main_task: Started on CPU0[0m
+[0;32mI (813) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations[0m
+[0;32mI (813) main_task: Calling app_main()[0m
+[0;32mI (823) s3 ll_cam: DMA Channel=0[0m
+[0;32mI (823) cam_hal: cam init ok[0m
+[0;32mI (823) sccb: pin_sda 4 pin_scl 5[0m
+[0;32mI (833) sccb: sccb_i2c_port=1[0m
+[0;32mI (843) ov3640: Mismatch PID=0x5640[0m
+[0;32mI (843) ov3660: Mismatch PID=0x5640[0m
+[0;32mI (843) camera: Camera PID=0x5640 VER=0x00 MIDL=0x00 MIDH=0x00[0m
+[0;32mI (853) camera: Detected OV5640 camera[0m
+[0;32mI (853) camera: Detected camera at address=0x3c[0m
+[0;32mI (1543) cam_hal: PSRAM DMA mode disabled[0m
+[0;32mI (1543) s3 ll_cam: node_size: 3840, nodes_per_line: 1, lines_per_node: 24[0m
+[0;32mI (1543) s3 ll_cam: dma_half_buffer_min:  3840, dma_half_buffer:  3840, lines_per_half_buffer: 24, dma_buffer_size: 30720[0m
+[0;32mI (1553) cam_hal: buffer_size: 30720, half_buffer_size: 3840, node_buffer_size: 3840, node_cnt: 8, total_cnt: 5[0m
+[0;32mI (1563) cam_hal: Allocating 19200 Byte frame buffer in PSRAM[0m
+[0;32mI (1573) cam_hal: Allocating 19200 Byte frame buffer in PSRAM[0m
+[0;32mI (1573) cam_hal: cam config ok[0m
+[0;32mI (1593) ov5640: Set PLL: bypass: 0, multiplier: 20, sys_div: 1, pre_div: 1, root_2x: 0, pclk_root_div: 1, pclk_manual: 1, pclk_div: 8[0m
+[0;32mI (1593) ov5640: Calculated XVCLK: 20000000 Hz, REFIN: 20000000 Hz, VCO: 400000000 Hz, PLL_CLK: 160000000 Hz, SYSCLK: 40000000 Hz, PCLK: 10000000 Hz[0m
+[0;33mW (3543) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (3543) ocsvm: #0 feat=1724762us svm=43324us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.412[0m
+[0;33mW (5323) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (5323) ocsvm: #1 feat=1725826us svm=50745us f=-0.0473 f_s=-0.0712 raw=0 ALARM=1 motion=0.096[0m
+[0;33mW (7093) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (7093) ocsvm: #2 feat=1724928us svm=41613us f=-0.0952 f_s=-0.0792 raw=1 ALARM=1 motion=0.695[0m
+[0;33mW (8873) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (8873) ocsvm: #3 feat=1725554us svm=50973us f=-0.0952 f_s=-0.0792 raw=1 ALARM=1 motion=0.575[0m
+[0;33mW (10643) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (10643) ocsvm: #4 feat=1724839us svm=41685us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.503[0m
+[0;33mW (12423) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (12423) ocsvm: #5 feat=1725657us svm=50710us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.488[0m
+[0;33mW (14193) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (14193) ocsvm: #6 feat=1724706us svm=41651us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.057[0m
+[0;33mW (15973) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (15973) ocsvm: #7 feat=1725261us svm=51115us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.059[0m
+[0;33mW (17743) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (17743) ocsvm: #8 feat=1724678us svm=41681us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.963[0m
+[0;33mW (19523) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (19523) ocsvm: #9 feat=1725401us svm=51023us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.837[0m
+[0;33mW (21293) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (21293) ocsvm: #10 feat=1724870us svm=41500us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=7.478[0m
+[0;33mW (23073) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (23073) ocsvm: #11 feat=1725525us svm=50762us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=6.895[0m
+[0;33mW (24843) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (24843) ocsvm: #12 feat=1724995us svm=41272us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=10.671[0m
+[0;33mW (26623) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (26623) ocsvm: #13 feat=1725513us svm=50671us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.135[0m
+[0;33mW (28393) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (28393) ocsvm: #14 feat=1724723us svm=41470us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.288[0m
+[0;33mW (30173) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (30173) ocsvm: #15 feat=1725460us svm=50795us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.037[0m
+[0;33mW (31943) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (31943) ocsvm: #16 feat=1724829us svm=41454us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.820[0m
+[0;33mW (33723) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (33723) ocsvm: #17 feat=1725472us svm=50791us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.819[0m
+[0;33mW (35493) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (35493) ocsvm: #18 feat=1724791us svm=41490us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.488[0m
+[0;33mW (37273) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (37273) ocsvm: #19 feat=1725521us svm=50743us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.940[0m
+[0;33mW (39043) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (39043) ocsvm: #20 feat=1724732us svm=41624us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.795[0m
+[0;33mW (40823) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (40823) ocsvm: #21 feat=1725448us svm=50828us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.411[0m
+[0;33mW (42593) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (42593) ocsvm: #22 feat=1724727us svm=41573us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.262[0m
+[0;33mW (44373) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (44373) ocsvm: #23 feat=1725417us svm=50842us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.395[0m
+[0;33mW (46143) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (46143) ocsvm: #24 feat=1724650us svm=41629us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.364[0m
+[0;33mW (47923) ocsvm: FPGA khong phan hoi - dung OC-SVM phan mem[0m
+[0;32mI (47923) ocsvm: #25 feat=1725382us svm=50898us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.313[0m

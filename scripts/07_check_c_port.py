@@ -45,6 +45,49 @@ def sensor_frames(path, pp, n_max):
     return out
 
 
+def expected_dim(cfg) -> int:
+    f = cfg.features
+    if f.get("descriptor", "covariance") == "grid_flow":
+        from ocsvm_fpga.features.grid_flow import grid_dim
+        return grid_dim(f, int(cfg.preprocess.height), int(cfg.preprocess.width))
+    from ocsvm_fpga.features.covariance import descriptor_dim
+    return descriptor_dim(f.feature_set)
+
+
+def preflight(cfg, out, fpga_dir):
+    """Kiểm tra cấu hình ↔ mô hình ↔ file .h ↔ firmware khớp nhau trước khi biên dịch,
+    để báo đúng nguyên nhân thay vì lỗi biên dịch / lỗi kích thước khó hiểu."""
+    import re
+    grid = cfg.features.get("descriptor", "covariance") == "grid_flow"
+    want = expected_dim(cfg)
+    kind = (f"lưới {cfg.features.grid_rows}×{cfg.features.grid_cols} ({cfg.features.grid_stats})" if grid
+            else f"hiệp biến {cfg.features.feature_set}")
+    problems = []
+    det = AnomalyDetector.load(out / "models" / "detector.joblib")
+    got = int(det.model.support_vectors.shape[1])
+    if got != want:
+        problems.append(f"Mô hình outputs/models/detector.joblib có {got} chiều, cấu hình hiện tại ({kind}) cần "
+                        f"{want} chiều → huấn luyện lại:  python scripts/02_train.py   (rồi chạy lại 04)")
+    hdr = (fpga_dir / "ocsvm_params.h").read_text(encoding="utf-8", errors="ignore")
+    m_dim = re.search(r"#define\s+OCSVM_DIM\s+(\d+)", hdr)
+    m_desc = re.search(r"#define\s+OCSVM_DESCRIPTOR\s+(\d+)", hdr)
+    if m_dim and int(m_dim.group(1)) != want:
+        problems.append(f"outputs/fpga/ocsvm_params.h có OCSVM_DIM = {m_dim.group(1)}, cần {want} "
+                        "→ xuất lại:  python scripts/04_export_fpga.py")
+    if grid and (m_desc is None or m_desc.group(1) != "1" or "GRID_ROWS" not in hdr):
+        problems.append("outputs/fpga/ocsvm_params.h chưa có hằng số lưới (OCSVM_DESCRIPTOR 1, GRID_ROWS…) "
+                        "→ chép src/ocsvm_fpga/export/fpga_exporter.py bản mới rồi chạy lại "
+                        "python scripts/04_export_fpga.py")
+    fw_c = (FW / "ocsvm_features.c").read_text(encoding="utf-8", errors="ignore")
+    fw_h = (FW / "ocsvm_features.h").read_text(encoding="utf-8", errors="ignore")
+    if grid and ("ofe_grid_descriptor" not in fw_c or "OCSVM_DESCRIPTOR != 0\n#error" in fw_h
+                 or "Firmware chi ho tro dac trung hiep bien" in fw_h):
+        problems.append("Firmware chưa hỗ trợ đặc trưng lưới → chép bản mới của "
+                        "firmware/esp32_features/ocsvm_features.c và ocsvm_features.h")
+    if problems:
+        sys.exit("Chưa chạy được bước 07:\n  - " + "\n  - ".join(problems))
+
+
 def main():
     ap = base_parser(__doc__)
     ap.add_argument("--video", default=None)
@@ -52,12 +95,13 @@ def main():
     ap.add_argument("--cc", default="gcc")
     args = ap.parse_args()
     cfg, out, log, rng = setup(args, "07_check_c")
-    if cfg.features.get("descriptor", "covariance") != "covariance" or cfg.optical_flow.get("method", "hs") != "hs":
-        sys.exit("Firmware ESP32 chỉ cài đặt đặc trưng hiệp biến + Horn–Schunck. Đặc trưng lưới / "
-                 "Farneback là đường cơ sở để so sánh trên PC, không có bản C.")
+    if cfg.optical_flow.get("method", "hs") != "hs":
+        sys.exit("Firmware ESP32 chỉ cài đặt Horn–Schunck. Farneback là đường cơ sở để so sánh trên PC, "
+                 "không có bản C.")
     fpga_dir = out / "fpga"
     if not (fpga_dir / "ocsvm_params.h").exists() or not (fpga_dir / "ocsvm_model_data.h").exists():
         sys.exit("Chưa có outputs/fpga/*.h – chạy scripts/04_export_fpga.py trước.")
+    preflight(cfg, out, fpga_dir)
     if shutil.which(args.cc) is None:
         sys.exit(f"Không tìm thấy trình biên dịch '{args.cc}'.\n"
                  "Windows: cài gcc (MinGW-w64), ví dụ:  winget install BrechtSanders.WinLibs.POSIX.UCRT\n"

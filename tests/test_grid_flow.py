@@ -8,7 +8,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import numpy as np  # noqa: E402
 
 from ocsvm_fpga.config import load_config  # noqa: E402
-from ocsvm_fpga.features.grid_flow import cell_edges, grid_descriptor_dim, grid_flow_descriptor  # noqa: E402
+from ocsvm_fpga.features.grid_flow import (block_stats, cell_edges, from_blocks, grid_descriptor_dim,  # noqa: E402
+                                           grid_flow_descriptor)
 from ocsvm_fpga.features.pipeline import feature_signature  # noqa: E402
 
 
@@ -28,6 +29,25 @@ class TestGridFlow(unittest.TestCase):
         d = grid_flow_descriptor(u, v, 6, 8, "rich").reshape(6, 8, 5)
         np.testing.assert_allclose(d[1, 3], [3, 4, 5, 5, 0], atol=1e-6)
         self.assertEqual(float(np.abs(np.delete(d.reshape(48, 5), 1 * 8 + 3, 0)).sum()), 0.0)
+
+    def test_max_is_rich_without_std(self):
+        rng = np.random.default_rng(0)
+        u, v = rng.normal(size=(120, 160)).astype(np.float32), rng.normal(size=(120, 160)).astype(np.float32)
+        rich = grid_flow_descriptor(u, v, 4, 4, "rich").reshape(16, 5)
+        mx = grid_flow_descriptor(u, v, 4, 4, "max").reshape(16, 4)
+        np.testing.assert_array_equal(mx, rich[:, :4])
+
+    def test_blocks_equal_direct(self):
+        """Lưới ghép từ cache khối 10×10 phải trùng với tính trực tiếp (đều / phối cảnh, có diff)."""
+        rng = np.random.default_rng(1)
+        u, v = (rng.normal(size=(120, 160)).astype(np.float32) for _ in range(2))
+        d = np.abs(rng.normal(size=(120, 160))).astype(np.float32)
+        B = block_stats(u, v, d)[None]
+        for ye, xe in ((cell_edges(120, 4), cell_edges(160, 4)), ([0, 20, 40, 70, 120], [0, 50, 80, 110, 160])):
+            for stats in ("basic", "max", "rich"):
+                for diff in (False, True):
+                    direct = grid_flow_descriptor(u, v, stats=stats, ye=ye, xe=xe, diff_img=d if diff else None)
+                    np.testing.assert_allclose(from_blocks(B, ye, xe, stats, diff)[0], direct, rtol=1e-4, atol=1e-5)
 
     def test_uneven_edges(self):
         e = cell_edges(100, 6)

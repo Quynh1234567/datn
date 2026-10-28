@@ -15,12 +15,13 @@ from ..config import resolve_path
 from ..data.dataset import VideoItem, find_annotation, load_frame_labels
 from ..data.video_reader import iter_sensor_frames, smooth_frame, video_info
 from .covariance import covariance_descriptor, multi_threshold_descriptors
-from .grid_flow import grid_flow_descriptor
+from .grid_flow import block_stats, compress, from_blocks, grid_flow_descriptor, grid_layout
 from .optical_flow import compute_flow
 
 # Khóa cấu hình chỉ ảnh hưởng tới đặc trưng lưới / Farneback. Khi dùng mặc định
 # (hiệp biến + Horn–Schunck) chúng bị loại khỏi hash → cache cũ vẫn dùng được.
-GRID_KEYS = ("descriptor", "grid_rows", "grid_cols", "grid_stats")
+GRID_KEYS = ("descriptor", "grid_rows", "grid_cols", "grid_stats", "grid_log_scale", "grid_diff",
+             "grid_row_edges", "grid_col_edges")
 COV_ONLY_KEYS = ("feature_set", "pixel_stride", "border", "normalize_coords",
                  "motion_threshold", "motion_threshold_grid", "min_motion_pixels",
                  "cov_epsilon", "log_euclidean")
@@ -60,13 +61,15 @@ def feature_signature(cfg) -> str:
         ft = {k: v for k, v in dict(cfg.features).items()
               if k not in ("motion_threshold", "motion_threshold_grid") + GRID_KEYS}
     else:
-        ft = {k: v for k, v in dict(cfg.features).items() if k not in COV_ONLY_KEYS}
+        # cache theo khối 10×10: cách chia lưới, thống kê, grid_diff, nén biên độ đều áp dụng lúc ĐỌC cache
+        ft = {"descriptor": "grid_flow", "cache": "blocks10"}
     of = dict(cfg.optical_flow)
     if of.get("method", "hs") == "hs":
         of = {k: v for k, v in of.items() if k not in FLOW_EXTRA_KEYS}
     else:
         of = {k: v for k, v in of.items() if k not in HS_KEYS}
-    pp = {k: v for k, v in dict(cfg.preprocess).items() if k != "cache_frames"}
+    pp = {k: v for k, v in dict(cfg.preprocess).items()
+          if k != "cache_frames" and not (k == "mask_regions" and not v)}
     key = json.dumps({"pp": pp, "of": of, "ft": ft,
                       "grid": threshold_grid(cfg)}, sort_keys=True)
     return hashlib.md5(key.encode()).hexdigest()[:10]
@@ -75,7 +78,10 @@ def feature_signature(cfg) -> str:
 def frames_signature(cfg) -> str:
     """Hash riêng cho cache khung hình: chỉ phụ thuộc kích thước, cách crop, frame_step."""
     pp = cfg.preprocess
-    key = json.dumps({"w": pp.width, "h": pp.height, "a": pp.aspect_mode, "s": pp.frame_step})
+    k = {"w": pp.width, "h": pp.height, "a": pp.aspect_mode, "s": pp.frame_step}
+    if pp.get("mask_regions"):                       # chỉ thêm khi có → cache cũ không đổi
+        k["m"] = pp.mask_regions
+    key = json.dumps(k)                               # giữ nguyên thứ tự → hash cũ không đổi
     return hashlib.md5(key.encode()).hexdigest()[:8]
 
 
@@ -85,7 +91,10 @@ def frame_pair_descriptor(prev: np.ndarray, cur: np.ndarray, cfg):
     motion = float(np.mean(np.hypot(u, v)))
     if descriptor_kind(cfg) == "grid_flow":
         f = cfg.features
-        return grid_flow_descriptor(u, v, f.grid_rows, f.grid_cols, f.grid_stats), None, motion
+        ye, xe = grid_layout(f, *u.shape)
+        diff = np.abs(cur.astype(np.float32) - prev.astype(np.float32)) if f.get("grid_diff", False) else None
+        vec = grid_flow_descriptor(u, v, stats=f.get("grid_stats", "basic"), ye=ye, xe=xe, diff_img=diff)
+        return compress(vec, float(f.get("grid_log_scale", 0) or 0)), None, motion
     vec, c = covariance_descriptor(u, v, cfg.features)
     return vec, c, motion
 
@@ -135,7 +144,7 @@ def extract_video(item: VideoItem, cfg, out_root: Path | None = None) -> dict:
                 vg, c = multi_threshold_descriptors(u, v, f, grid)
                 covs.append(c)
             else:
-                vg = grid_flow_descriptor(u, v, f.grid_rows, f.grid_cols, f.grid_stats)
+                vg = block_stats(u, v, np.abs(frame.astype(np.float32) - prev.astype(np.float32)))
             vecs.append(vg)
             frame_ids.append(int(idx))                  # nhãn của cặp = nhãn khung thứ hai
             motion.append(float(np.mean(np.hypot(u, v))))
@@ -148,7 +157,8 @@ def extract_video(item: VideoItem, cfg, out_root: Path | None = None) -> dict:
         out["thr_grid"] = np.asarray(grid, np.float64)
         out["C"] = np.asarray(covs, np.float32)
     else:                                              # đặc trưng lưới: một véc-tơ / cặp khung
-        out["X"] = np.asarray(vecs, np.float32).reshape(len(vecs), -1)
+        out["B"] = (np.stack(vecs).astype(np.float32) if vecs
+                    else np.zeros((0, frames.shape[1] // 10, frames.shape[2] // 10, 6), np.float32))
     out.update({
         "frame_idx": np.asarray(frame_ids, np.int32),
         "motion": np.asarray(motion, np.float32),
@@ -163,8 +173,8 @@ def extract_video(item: VideoItem, cfg, out_root: Path | None = None) -> dict:
 
 def select_threshold(d: dict, cfg) -> np.ndarray:
     """Lấy véc-tơ ứng với cfg.features.motion_threshold từ cache nhiều ngưỡng."""
-    if "Xg" not in d:                                  # cache định dạng cũ
-        return d["X"]
+    if "Xg" not in d:                                  # cache lưới (khối) hoặc định dạng cũ
+        return d.get("X")
     grid = np.asarray(d["thr_grid"])
     thr = float(cfg.features.motion_threshold)
     k = int(np.argmin(np.abs(grid - thr)))
@@ -221,6 +231,13 @@ def load_split(items: list[VideoItem], cfg, out_root: Path) -> dict:
             continue
         d = dict(np.load(path))
         d["X"] = select_threshold(d, cfg)
+        if descriptor_kind(cfg) == "grid_flow":
+            f = cfg.features
+            if "B" in d:                                 # ghép lưới từ thống kê khối
+                ye, xe = grid_layout(f, int(cfg.preprocess.height), int(cfg.preprocess.width))
+                d["X"] = from_blocks(d["B"], ye, xe, f.get("grid_stats", "basic"), bool(f.get("grid_diff", False)))
+            if float(f.get("grid_log_scale", 0) or 0) > 0:
+                d["X"] = compress(d["X"], float(f.grid_log_scale))
         if len(d["X"]) == 0:
             continue
         # Nhãn được đọc lại MỖI LẦN nạp (không phụ thuộc lúc trích đặc trưng),

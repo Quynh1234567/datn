@@ -11,21 +11,60 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import numpy as np  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402
 
-from ocsvm_fpga.cli import base_parser, get_splits, setup  # noqa: E402
+from ocsvm_fpga.cli import base_parser, get_splits, setup, load_detector_checked  # noqa: E402
 from ocsvm_fpga.config import resolve_path  # noqa: E402
 from ocsvm_fpga.data.dataset import load_test_classes  # noqa: E402
 from ocsvm_fpga.evaluation.metrics import (frame_metrics, per_video_auc, plot_roc,  # noqa: E402
-                                           plot_score_hist, plot_timelines)
+                                           plot_score_hist, plot_timelines, video_level_auc)
+from ocsvm_fpga.evaluation.events import (alarm_params, alarm_settings, event_metrics,  # noqa: E402
+                                          frame_metrics_binary, hysteresis_per_video)
 from ocsvm_fpga.features.pipeline import load_split  # noqa: E402
 from ocsvm_fpga.models.base import AnomalyDetector  # noqa: E402
 from ocsvm_fpga.utils import save_json  # noqa: E402
+
+
+def evaluate_events(det, cfg, val, test, m, smooth, y, vid, splits, log):
+    """(b) Đánh giá theo SỰ KIỆN, so sánh cảnh báo thường và cảnh báo có trễ (a)."""
+    sv = det.score(val["X"], val["video_id"]) if len(val["X"]) else smooth[y == 0]
+    ap = alarm_params(det, cfg, sv)
+    fps = alarm_settings(cfg)["video_fps"]
+    fidx = test["frame_idx"][m]
+    classes = load_test_classes(resolve_path(cfg.data.get("test_class_file")))
+    stems = [it.path.stem for it in splits["test"]]
+    cls_by_vid = {int(v): classes.get(stems[v], "?") for v in np.unique(vid)} if classes else None
+    plain = (smooth > ap["on"]).astype(np.uint8)
+    held = hysteresis_per_video(smooth, vid, ap["on"], ap["off"], ap["hold"])
+    out = {"params": ap, "fps": fps}
+    hold_s = ap["hold"] * cfg.preprocess.frame_step / fps
+    log.info(f"Cảnh báo theo SỰ KIỆN – bật khi điểm > {ap['on']:.4f}; có trễ: tắt khi < {ap['off']:.4f} "
+             f"liên tục {ap['hold']} cặp khung (≈ {hold_s:.1f} s)")
+    for name, al in (("không trễ", plain), ("có trễ", held)):
+        ev = event_metrics(y, al, vid, fidx, fps, cls_by_vid)
+        fm = frame_metrics_binary(y, al)
+        if len(val["X"]):
+            av = (sv > ap["on"]).astype(np.uint8) if name == "không trễ" else \
+                hysteresis_per_video(sv, val["video_id"], ap["on"], ap["off"], ap["hold"])
+            evv = event_metrics(np.zeros(len(sv), np.uint8), av, val["video_id"], val["frame_idx"], fps)
+            ev["val_false_alarms_per_hour"] = evv["false_alarms_per_hour"]
+        out["hysteresis" if name == "có trễ" else "plain"] = {"events": {k: v for k, v in ev.items()}, "frames": fm}
+        log.info(f"  {name:<9}: phát hiện {ev['detected']}/{ev['events']} sự kiện ({ev['event_recall']:.1%}) | "
+                 f"trễ trung vị {ev['delay_median_s']:.2f} s | phủ TB {ev['coverage_mean']:.0%} sự kiện | "
+                 f"báo giả {ev['false_alarms_per_hour']:.1f} lần/giờ (Test)"
+                 + (f", {ev['val_false_alarms_per_hour']:.1f} lần/giờ (val)" if "val_false_alarms_per_hour" in ev else "")
+                 + f" | khung: P = {fm['precision']:.3f} R = {fm['recall']:.3f} F1 = {fm['f1']:.3f}")
+    per = out["hysteresis"]["events"].get("per_class")
+    if per:
+        log.info("  Theo loại (có trễ): " + " | ".join(
+            f"{c} {r['recall']:.0%}" + (f" ({r['delay_median_s']:.1f}s)" if r['recall'] else "")
+            for c, r in sorted(per.items(), key=lambda kv: -kv[1]["recall"])))
+    return out
 
 
 def main():
     ap = base_parser(__doc__)
     args = ap.parse_args()
     cfg, out, log, rng = setup(args, "03_evaluate")
-    det = AnomalyDetector.load(out / "models" / "detector.joblib")
+    det = load_detector_checked(cfg, out)
     splits = get_splits(cfg, out, rng)
     val = load_split(splits["val"], cfg, out)
     test = load_split(splits["test"], cfg, out)
@@ -52,6 +91,11 @@ def main():
         report["test_raw"] = frame_metrics(y, raw, det.threshold)
         report["test_smoothed"] = frame_metrics(y, smooth, det.threshold)
         report["test_mean_per_video_auc"] = per_video_auc(y, smooth, vid)
+        vl = video_level_auc(y, smooth, vid)
+        if vl is not None:
+            report["video_level_auc"] = {"auc": vl[0], "normal_videos": vl[1], "abnormal_videos": vl[2]}
+            log.info(f"AUC mức video (điểm video = trung bình khung): {vl[0]:.4f} "
+                     f"({vl[1]} video bình thường, {vl[2]} video bất thường)")
         hist["test – bình thường"] = smooth[y == 0]
         hist["test – bất thường"] = smooth[y == 1]
         if len(np.unique(y)) == 2:
@@ -91,6 +135,7 @@ def main():
                  f"EER = {r.get('eer', float('nan')):.4f} | P = {r['precision']:.3f} "
                  f"R = {r['recall']:.3f} F1 = {r['f1']:.3f} | AUC thô = "
                  f"{report['test_raw'].get('auc', float('nan')):.4f}")
+        report["events"] = evaluate_events(det, cfg, val, test, m, smooth, y, vid, splits, log)
     else:
         log.warning("Không có tập Test có nhãn – chỉ báo cáo tỉ lệ báo động giả trên validation.")
     if hist:

@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import numpy as np  # noqa: E402
 from sklearn.metrics import roc_auc_score  # noqa: E402
 
-from ocsvm_fpga.cli import base_parser, get_splits, setup  # noqa: E402
+from ocsvm_fpga.cli import base_parser, get_splits, setup, load_detector_checked  # noqa: E402
 from ocsvm_fpga.export.fpga_exporter import export_all  # noqa: E402
 from ocsvm_fpga.features.pipeline import load_split  # noqa: E402
 from ocsvm_fpga.models.base import AnomalyDetector  # noqa: E402
@@ -25,8 +25,15 @@ def main():
     ap.add_argument("--max-verify", type=int, default=20000, help="số mẫu dùng để đo sai số lượng tử")
     args = ap.parse_args()
     cfg, out, log, rng = setup(args, "04_export")
-    det = AnomalyDetector.load(out / "models" / "detector.joblib")
+    det = load_detector_checked(cfg, out)
     splits = get_splits(cfg, out, rng)
+    from ocsvm_fpga.evaluation.events import alarm_params, alarm_params_need_normal
+    if alarm_params_need_normal(det, cfg):                   # mô hình cũ / đổi cấu hình cảnh báo
+        val = load_split(splits["val"], cfg, out)
+        det.meta["alarm"] = alarm_params(det, cfg, det.score(val["X"], val["video_id"]) if len(val["X"]) else None)
+    a = det.meta["alarm"]
+    log.info(f"Cảnh báo có trễ (ghi vào ocsvm_params.h): bật > {a['on']:.4f}, tắt < {a['off']:.4f}, "
+             f"giữ {a['hold']} cặp khung")
 
     data = load_split(splits["test"], cfg, out)
     src = "test"

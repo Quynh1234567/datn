@@ -1,0 +1,13 @@
+// Tang Nano 20K (GW2AR-LV18QN88C8/I7) – KIỂM TRA LẠI chân theo schematic / ví dụ của Sipeed trước khi nạp
+IO_LOC  "clk" 4;            // thạch anh 27 MHz
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "rst_n" 88;         // nút S1 (kiểm tra mức tích cực trên board)
+IO_PORT "rst_n" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "uart_tx" 69;       // FPGA → BL616 (PC nhận)
+IO_PORT "uart_tx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "uart_rx" 70;       // BL616 → FPGA (PC gửi)
+IO_PORT "uart_rx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "led_busy_n" 15;
+IO_PORT "led_busy_n" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8;
+IO_LOC  "led_anomaly_n" 16;
+IO_PORT "led_anomaly_n" IO_TYPE=LVCMOS33 PULL_MODE=UP DRIVE=8;

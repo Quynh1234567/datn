@@ -1,0 +1,262 @@
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0xa (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2810,len:0x1828
+load:0x403c8700,len:0x4
+load:0x403c8704,len:0xce8
+load:0x403cb700,len:0x2eb8
+entry 0x403c8918
+[0;32mI (27) boot: ESP-IDF HEAD-HASH-NOTFOUND 2nd stage bootloader[0m
+[0;32mI (27) boot: compile time Oct 28 2026 13:41:19[0m
+[0;32mI (27) boot: Multicore bootloader[0m
+[0;32mI (31) boot: chip revision: v0.2[0m
+[0;32mI (35) boot: efuse block revision: v1.4[0m
+[0;32mI (39) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (44) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (49) boot.esp32s3: SPI Flash Size : 2MB[0m
+[0;32mI (53) boot: Enabling RNG early entropy source...[0m
+[0;32mI (59) boot: Partition Table:[0m
+[0;32mI (62) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (70) boot:  0 nvs              WiFi data        01 02 00009000 00006000[0m
+[0;32mI (77) boot:  1 phy_init         RF data          01 01 0000f000 00001000[0m
+[0;32mI (85) boot:  2 factory          factory app      00 00 00010000 00100000[0m
+[0;32mI (92) boot: End of partition table[0m
+[0;32mI (96) esp_image: segment 0: paddr=00010020 vaddr=3c030020 size=12bd8h ( 76760) map[0m
+[0;32mI (119) esp_image: segment 1: paddr=00022c00 vaddr=3fc94600 size=05c78h ( 23672) load[0m
+[0;32mI (124) esp_image: segment 2: paddr=00028880 vaddr=40374000 size=07798h ( 30616) load[0m
+[0;32mI (132) esp_image: segment 3: paddr=00030020 vaddr=42000020 size=27824h (161828) map[0m
+[0;32mI (163) esp_image: segment 4: paddr=0005784c vaddr=4037b798 size=08d98h ( 36248) load[0m
+[0;32mI (178) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (178) boot: Disabling RNG early entropy source...[0m
+[0;32mI (190) octal_psram: vendor id    : 0x0d (AP)[0m
+[0;32mI (190) octal_psram: dev id       : 0x02 (generation 3)[0m
+[0;32mI (190) octal_psram: density      : 0x03 (64 Mbit)[0m
+[0;32mI (195) octal_psram: good-die     : 0x01 (Pass)[0m
+[0;32mI (201) octal_psram: Latency      : 0x01 (Fixed)[0m
+[0;32mI (206) octal_psram: VCC          : 0x01 (3V)[0m
+[0;32mI (211) octal_psram: SRF          : 0x01 (Fast Refresh)[0m
+[0;32mI (217) octal_psram: BurstType    : 0x01 (Hybrid Wrap)[0m
+[0;32mI (223) octal_psram: BurstLen     : 0x01 (32 Byte)[0m
+[0;32mI (228) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)[0m
+[0;32mI (234) octal_psram: DriveStrength: 0x00 (1/1)[0m
+[0;32mI (240) MSPI Timing: PSRAM timing tuning index: 4[0m
+[0;32mI (245) esp_psram: Found 8MB PSRAM device[0m
+[0;32mI (249) esp_psram: Speed: 80MHz[0m
+[0;32mI (253) cpu_start: Multicore app[0m
+[0;32mI (664) esp_psram: SPI SRAM memory test OK[0m
+[0;32mI (673) cpu_start: Pro cpu start user code[0m
+[0;32mI (673) cpu_start: cpu freq: 240000000 Hz[0m
+[0;32mI (673) app_init: Application information:[0m
+[0;32mI (676) app_init: Project name:     ocsvm_demo[0m
+[0;32mI (681) app_init: App version:      6894f9c-dirty[0m
+[0;32mI (686) app_init: Compile time:     Oct 28 2026 13:36:06[0m
+[0;32mI (692) app_init: ELF file SHA256:  34dc30f43...[0m
+[0;32mI (697) app_init: ESP-IDF:          HEAD-HASH-NOTFOUND[0m
+[0;32mI (703) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (708) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (713) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (718) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (725) heap_init: At 3FC9B030 len 0004E6E0 (313 KiB): RAM[0m
+[0;32mI (731) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (737) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (743) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM[0m
+[0;32mI (750) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator[0m
+[0;32mI (758) spi_flash: detected chip: boya[0m
+[0;32mI (761) spi_flash: flash io: dio[0m
+[0;33mW (765) spi_flash: Detected size(16384k) larger than the size in the binary image header(2048k). Using the size in the binary image header.[0m
+[0;33mW (778) i2c: This driver is an old driver, please migrate your application code to adapt `driver/i2c_master.h`[0m
+[0;32mI (789) sleep: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (796) sleep: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (803) main_task: Started on CPU0[0m
+[0;32mI (813) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations[0m
+[0;32mI (813) main_task: Calling app_main()[0m
+[0;32mI (823) s3 ll_cam: DMA Channel=0[0m
+[0;32mI (823) cam_hal: cam init ok[0m
+[0;32mI (823) sccb: pin_sda 4 pin_scl 5[0m
+[0;32mI (833) sccb: sccb_i2c_port=1[0m
+[0;32mI (843) ov3640: Mismatch PID=0x5640[0m
+[0;32mI (843) ov3660: Mismatch PID=0x5640[0m
+[0;32mI (843) camera: Camera PID=0x5640 VER=0x00 MIDL=0x00 MIDH=0x00[0m
+[0;32mI (853) camera: Detected OV5640 camera[0m
+[0;32mI (853) camera: Detected camera at address=0x3c[0m
+[0;32mI (1543) cam_hal: PSRAM DMA mode disabled[0m
+[0;32mI (1543) s3 ll_cam: node_size: 3840, nodes_per_line: 1, lines_per_node: 24[0m
+[0;32mI (1543) s3 ll_cam: dma_half_buffer_min:  3840, dma_half_buffer:  3840, lines_per_half_buffer: 24, dma_buffer_size: 30720[0m
+[0;32mI (1553) cam_hal: buffer_size: 30720, half_buffer_size: 3840, node_buffer_size: 3840, node_cnt: 8, total_cnt: 5[0m
+[0;32mI (1563) cam_hal: Allocating 19200 Byte frame buffer in PSRAM[0m
+[0;32mI (1573) cam_hal: Allocating 19200 Byte frame buffer in PSRAM[0m
+[0;32mI (1573) cam_hal: cam config ok[0m
+[0;32mI (1593) ov5640: Set PLL: bypass: 0, multiplier: 20, sys_div: 1, pre_div: 1, root_2x: 0, pclk_root_div: 1, pclk_manual: 1, pclk_div: 8[0m
+[0;32mI (1593) ov5640: Calculated XVCLK: 20000000 Hz, REFIN: 20000000 Hz, VCO: 400000000 Hz, PLL_CLK: 160000000 Hz, SYSCLK: 40000000 Hz, PCLK: 10000000 Hz[0m
+[0;32mI (3503) ocsvm: #0 feat=1724336us svm=10447us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=10.653[0m
+[0;32mI (5243) ocsvm: #1 feat=1725456us svm=10437us f=-0.0942 f_s=-0.0947 raw=1 ALARM=1 motion=0.126[0m
+[0;32mI (6983) ocsvm: #2 feat=1724540us svm=10429us f=-0.0952 f_s=-0.0948 raw=1 ALARM=1 motion=10.044[0m
+[0;32mI (8713) ocsvm: #3 feat=1725219us svm=10434us f=-0.0952 f_s=-0.0948 raw=1 ALARM=1 motion=0.477[0m
+[0;32mI (10453) ocsvm: #4 feat=1725062us svm=10431us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.256[0m
+[0;32mI (12183) ocsvm: #5 feat=1725363us svm=10426us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=5.592[0m
+[0;32mI (13923) ocsvm: #6 feat=1724645us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.922[0m
+[0;32mI (15663) ocsvm: #7 feat=1725646us svm=10426us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.171[0m
+[0;32mI (17393) ocsvm: #8 feat=1724820us svm=10429us f=-0.0951 f_s=-0.0951 raw=1 ALARM=1 motion=0.174[0m
+[0;32mI (19133) ocsvm: #9 feat=1725337us svm=10427us f=-0.0952 f_s=-0.0951 raw=1 ALARM=1 motion=5.820[0m
+[0;32mI (20863) ocsvm: #10 feat=1724575us svm=10446us f=-0.0952 f_s=-0.0951 raw=1 ALARM=1 motion=1.829[0m
+[0;32mI (22603) ocsvm: #11 feat=1725344us svm=10433us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=6.062[0m
+[0;32mI (24343) ocsvm: #12 feat=1724635us svm=10440us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.575[0m
+[0;32mI (26073) ocsvm: #13 feat=1725245us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.579[0m
+[0;32mI (27813) ocsvm: #14 feat=1724585us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.351[0m
+[0;32mI (29553) ocsvm: #15 feat=1725405us svm=10434us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.248[0m
+[0;32mI (31283) ocsvm: #16 feat=1724537us svm=10440us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.757[0m
+[0;32mI (33023) ocsvm: #17 feat=1725426us svm=10426us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.185[0m
+[0;32mI (34753) ocsvm: #18 feat=1724504us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=14.565[0m
+[0;32mI (36493) ocsvm: #19 feat=1725271us svm=10428us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=4.367[0m
+[0;32mI (38233) ocsvm: #20 feat=1724773us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.241[0m
+[0;32mI (39963) ocsvm: #21 feat=1725379us svm=10420us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.249[0m
+[0;32mI (41703) ocsvm: #22 feat=1724673us svm=10434us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.475[0m
+[0;32mI (43433) ocsvm: #23 feat=1725255us svm=10420us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.434[0m
+[0;32mI (45173) ocsvm: #24 feat=1724446us svm=10436us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.032[0m
+[0;32mI (46913) ocsvm: #25 feat=1725287us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.287[0m
+[0;32mI (48643) ocsvm: #26 feat=1724600us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.667[0m
+[0;32mI (50383) ocsvm: #27 feat=1725774us svm=10421us f=-0.0946 f_s=-0.0950 raw=1 ALARM=1 motion=0.180[0m
+[0;32mI (52113) ocsvm: #28 feat=1724612us svm=10434us f=-0.0952 f_s=-0.0950 raw=1 ALARM=1 motion=0.385[0m
+[0;32mI (53853) ocsvm: #29 feat=1725641us svm=10426us f=-0.0952 f_s=-0.0950 raw=1 ALARM=1 motion=0.202[0m
+[0;32mI (55593) ocsvm: #30 feat=1724690us svm=10434us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.460[0m
+[0;32mI (57323) ocsvm: #31 feat=1725669us svm=10412us f=-0.0950 f_s=-0.0951 raw=1 ALARM=1 motion=0.167[0m
+[0;32mI (59063) ocsvm: #32 feat=1724507us svm=10430us f=-0.0952 f_s=-0.0951 raw=1 ALARM=1 motion=11.930[0m
+[0;32mI (60803) ocsvm: #33 feat=1725138us svm=10442us f=-0.0952 f_s=-0.0951 raw=1 ALARM=1 motion=20.708[0m
+[0;32mI (62533) ocsvm: #34 feat=1724617us svm=10438us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.341[0m
+[0;32mI (64273) ocsvm: #35 feat=1725220us svm=10435us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=8.958[0m
+[0;32mI (66003) ocsvm: #36 feat=1724605us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=4.495[0m
+[0;32mI (67743) ocsvm: #37 feat=1725413us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.391[0m
+[0;32mI (69483) ocsvm: #38 feat=1724694us svm=10436us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.489[0m
+[0;32mI (71213) ocsvm: #39 feat=1725259us svm=10424us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.258[0m
+[0;32mI (72953) ocsvm: #40 feat=1724694us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.186[0m
+[0;32mI (74683) ocsvm: #41 feat=1725257us svm=10436us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.858[0m
+[0;32mI (76423) ocsvm: #42 feat=1724745us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=5.081[0m
+[0;32mI (78163) ocsvm: #43 feat=1725188us svm=10432us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.907[0m
+[0;32mI (79893) ocsvm: #44 feat=1724782us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.263[0m
+[0;32mI (81633) ocsvm: #45 feat=1725206us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.604[0m
+[0;32mI (83363) ocsvm: #46 feat=1724743us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.095[0m
+[0;32mI (85103) ocsvm: #47 feat=1725161us svm=10432us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.877[0m
+[0;32mI (86843) ocsvm: #48 feat=1724691us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=3.202[0m
+[0;32mI (88573) ocsvm: #49 feat=1725364us svm=10438us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.698[0m
+[0;32mI (90313) ocsvm: #50 feat=1724714us svm=10435us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.517[0m
+[0;32mI (92043) ocsvm: #51 feat=1725285us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.388[0m
+[0;32mI (93783) ocsvm: #52 feat=1724620us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.123[0m
+[0;32mI (95523) ocsvm: #53 feat=1725260us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.754[0m
+[0;32mI (97253) ocsvm: #54 feat=1724682us svm=10435us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.652[0m
+[0;32mI (98993) ocsvm: #55 feat=1725194us svm=10436us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.067[0m
+[0;32mI (100723) ocsvm: #56 feat=1724563us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.825[0m
+[0;32mI (102463) ocsvm: #57 feat=1725236us svm=10438us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.632[0m
+[0;32mI (104203) ocsvm: #58 feat=1724814us svm=10427us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.249[0m
+[0;32mI (105933) ocsvm: #59 feat=1725305us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.363[0m
+[0;32mI (107673) ocsvm: #60 feat=1724659us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.888[0m
+[0;32mI (109403) ocsvm: #61 feat=1725199us svm=10438us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=4.458[0m
+[0;32mI (111143) ocsvm: #62 feat=1724934us svm=10436us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.237[0m
+[0;32mI (112883) ocsvm: #63 feat=1725230us svm=10427us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.548[0m
+[0;32mI (114613) ocsvm: #64 feat=1724673us svm=10435us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.209[0m
+[0;32mI (116353) ocsvm: #65 feat=1725223us svm=10420us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.837[0m
+[0;32mI (118093) ocsvm: #66 feat=1724848us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.446[0m
+[0;32mI (119823) ocsvm: #67 feat=1725208us svm=10420us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=8.513[0m
+[0;32mI (121563) ocsvm: #68 feat=1724585us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=8.207[0m
+[0;32mI (123293) ocsvm: #69 feat=1725376us svm=10434us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=3.040[0m
+[0;32mI (125033) ocsvm: #70 feat=1724664us svm=10440us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.670[0m
+[0;32mI (126773) ocsvm: #71 feat=1725216us svm=10426us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=12.624[0m
+[0;32mI (128503) ocsvm: #72 feat=1724687us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.607[0m
+[0;32mI (130243) ocsvm: #73 feat=1725300us svm=10420us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.774[0m
+[0;32mI (131973) ocsvm: #74 feat=1724499us svm=10435us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.697[0m
+[0;32mI (133713) ocsvm: #75 feat=1725208us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=10.436[0m
+[0;32mI (135453) ocsvm: #76 feat=1724847us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.307[0m
+[0;32mI (137183) ocsvm: #77 feat=1725513us svm=10427us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.484[0m
+[0;32mI (138923) ocsvm: #78 feat=1724427us svm=10429us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.057[0m
+[0;32mI (140653) ocsvm: #79 feat=1725245us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=5.764[0m
+[0;32mI (142393) ocsvm: #80 feat=1724644us svm=10443us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.004[0m
+[0;32mI (144133) ocsvm: #81 feat=1725230us svm=10431us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=3.736[0m
+[0;32mI (145863) ocsvm: #82 feat=1724648us svm=10443us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.952[0m
+[0;32mI (147603) ocsvm: #83 feat=1725228us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.604[0m
+[0;32mI (149333) ocsvm: #84 feat=1724788us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.374[0m
+[0;32mI (151073) ocsvm: #85 feat=1725265us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.448[0m
+[0;32mI (152813) ocsvm: #86 feat=1724642us svm=10445us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.034[0m
+[0;32mI (154543) ocsvm: #87 feat=1725354us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=4.082[0m
+[0;32mI (156283) ocsvm: #88 feat=1724729us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=24.959[0m
+[0;32mI (158023) ocsvm: #89 feat=1725496us svm=10436us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=26.911[0m
+[0;32mI (159753) ocsvm: #90 feat=1724750us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.436[0m
+[0;32mI (161493) ocsvm: #91 feat=1725271us svm=10421us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.511[0m
+[0;32mI (163223) ocsvm: #92 feat=1724496us svm=10443us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=18.684[0m
+[0;32mI (164963) ocsvm: #93 feat=1725362us svm=10426us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.850[0m
+[0;32mI (166693) ocsvm: #94 feat=1724467us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=14.497[0m
+[0;32mI (168433) ocsvm: #95 feat=1725333us svm=10436us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.907[0m
+[0;32mI (170173) ocsvm: #96 feat=1724590us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=7.560[0m
+[0;32mI (171903) ocsvm: #97 feat=1725286us svm=10432us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.799[0m
+[0;32mI (173643) ocsvm: #98 feat=1724716us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.338[0m
+[0;32mI (175383) ocsvm: #99 feat=1725226us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=11.404[0m
+[0;32mI (177113) ocsvm: #100 feat=1724615us svm=10438us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=7.836[0m
+[0;32mI (178853) ocsvm: #101 feat=1725291us svm=10435us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.033[0m
+[0;32mI (180583) ocsvm: #102 feat=1724835us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.004[0m
+[0;32mI (182323) ocsvm: #103 feat=1725617us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.245[0m
+[0;32mI (184063) ocsvm: #104 feat=1725136us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.148[0m
+[0;32mI (185793) ocsvm: #105 feat=1725180us svm=10425us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.322[0m
+[0;32mI (187533) ocsvm: #106 feat=1724987us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.179[0m
+[0;32mI (189273) ocsvm: #107 feat=1725264us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.441[0m
+[0;32mI (191003) ocsvm: #108 feat=1724728us svm=10433us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.830[0m
+[0;32mI (192743) ocsvm: #109 feat=1725139us svm=10434us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.856[0m
+[0;32mI (194473) ocsvm: #110 feat=1724464us svm=10431us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=5.362[0m
+[0;32mI (196213) ocsvm: #111 feat=1725172us svm=10438us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=3.300[0m
+[0;32mI (197943) ocsvm: #112 feat=1724714us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.373[0m
+[0;32mI (199683) ocsvm: #113 feat=1725310us svm=10426us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.188[0m
+[0;32mI (201423) ocsvm: #114 feat=1724740us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.336[0m
+[0;32mI (203153) ocsvm: #115 feat=1725576us svm=10429us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.149[0m
+[0;32mI (204893) ocsvm: #116 feat=1724805us svm=10425us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.199[0m
+[0;32mI (206633) ocsvm: #117 feat=1725187us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.340[0m
+[0;32mI (208363) ocsvm: #118 feat=1724565us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.109[0m
+[0;32mI (210103) ocsvm: #119 feat=1725399us svm=10438us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.406[0m
+[0;32mI (211833) ocsvm: #120 feat=1724773us svm=10427us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.684[0m
+[0;32mI (213573) ocsvm: #121 feat=1725191us svm=10426us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.034[0m
+[0;32mI (215313) ocsvm: #122 feat=1724800us svm=10445us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.401[0m
+[0;32mI (217043) ocsvm: #123 feat=1725234us svm=10434us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.487[0m
+[0;32mI (218783) ocsvm: #124 feat=1724676us svm=10440us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.405[0m
+[0;32mI (220513) ocsvm: #125 feat=1725431us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.174[0m
+[0;32mI (222253) ocsvm: #126 feat=1724633us svm=10445us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=9.271[0m
+[0;32mI (223993) ocsvm: #127 feat=1725463us svm=10428us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=6.046[0m
+[0;32mI (225723) ocsvm: #128 feat=1724644us svm=10445us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=29.743[0m
+[0;32mI (227463) ocsvm: #129 feat=1725478us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=25.525[0m
+[0;32mI (229203) ocsvm: #130 feat=1724448us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=4.319[0m
+[0;32mI (230933) ocsvm: #131 feat=1725507us svm=10434us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.976[0m
+[0;32mI (232673) ocsvm: #132 feat=1724542us svm=10431us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=3.868[0m
+[0;32mI (234403) ocsvm: #133 feat=1725246us svm=10438us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=4.924[0m
+[0;32mI (236143) ocsvm: #134 feat=1724525us svm=10446us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=10.828[0m
+[0;32mI (237883) ocsvm: #135 feat=1725250us svm=10434us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=11.881[0m
+[0;32mI (239613) ocsvm: #136 feat=1724529us svm=10440us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.202[0m
+[0;32mI (241353) ocsvm: #137 feat=1725494us svm=10437us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.547[0m
+[0;32mI (243083) ocsvm: #138 feat=1724586us svm=10434us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.610[0m
+[0;32mI (244823) ocsvm: #139 feat=1725241us svm=10426us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=2.400[0m
+[0;32mI (246563) ocsvm: #140 feat=1724521us svm=10442us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.429[0m
+[0;32mI (248293) ocsvm: #141 feat=1725365us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.578[0m
+[0;32mI (250033) ocsvm: #142 feat=1724728us svm=10435us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.222[0m
+[0;32mI (251763) ocsvm: #143 feat=1725536us svm=10420us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.261[0m
+[0;32mI (253503) ocsvm: #144 feat=1724894us svm=10435us f=-0.0951 f_s=-0.0951 raw=1 ALARM=1 motion=0.145[0m
+[0;32mI (255243) ocsvm: #145 feat=1725605us svm=10420us f=-0.0952 f_s=-0.0951 raw=1 ALARM=1 motion=0.241[0m
+[0;32mI (256973) ocsvm: #146 feat=1724889us svm=10435us f=-0.0951 f_s=-0.0951 raw=1 ALARM=1 motion=0.149[0m
+[0;32mI (258713) ocsvm: #147 feat=1725541us svm=10420us f=-0.0949 f_s=-0.0951 raw=1 ALARM=1 motion=0.139[0m
+[0;32mI (260453) ocsvm: #148 feat=1724576us svm=10429us f=-0.0952 f_s=-0.0951 raw=1 ALARM=1 motion=0.906[0m
+[0;32mI (262183) ocsvm: #149 feat=1725184us svm=10430us f=-0.0952 f_s=-0.0951 raw=1 ALARM=1 motion=8.817[0m
+[0;32mI (263923) ocsvm: #150 feat=1724600us svm=10438us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=6.392[0m
+[0;32mI (265653) ocsvm: #151 feat=1725267us svm=10435us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.882[0m
+[0;32mI (267393) ocsvm: #152 feat=1724689us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.246[0m
+[0;32mI (269133) ocsvm: #153 feat=1725465us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.194[0m
+[0;32mI (270863) ocsvm: #154 feat=1724544us svm=10424us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.533[0m
+[0;32mI (272603) ocsvm: #155 feat=1725225us svm=10432us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=6.800[0m
+[0;32mI (274333) ocsvm: #156 feat=1724755us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.608[0m
+[0;32mI (276073) ocsvm: #157 feat=1725129us svm=10424us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=5.923[0m
+[0;32mI (277813) ocsvm: #158 feat=1724612us svm=10432us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=11.686[0m
+[0;32mI (279543) ocsvm: #159 feat=1725332us svm=10436us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=1.413[0m
+[0;32mI (281283) ocsvm: #160 feat=1724683us svm=10441us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.525[0m
+[0;32mI (283013) ocsvm: #161 feat=1725124us svm=10424us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.871[0m
+[0;32mI (284753) ocsvm: #162 feat=1724916us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.315[0m
+[0;32mI (286493) ocsvm: #163 feat=1725159us svm=10424us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.466[0m
+[0;32mI (288223) ocsvm: #164 feat=1724684us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.752[0m
+[0;32mI (289963) ocsvm: #165 feat=1725376us svm=10424us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.299[0m
+[0;32mI (291693) ocsvm: #166 feat=1724826us svm=10431us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.764[0m
+[0;32mI (293433) ocsvm: #167 feat=1725273us svm=10424us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.497[0m
+[0;32mI (295173) ocsvm: #168 feat=1724641us svm=10430us f=-0.0952 f_s=-0.0952 raw=1 ALARM=1 motion=0.862[0m
+[0;32mI (296903) o

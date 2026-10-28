@@ -298,6 +298,64 @@ int ofe_quantize(const float *vec, int16_t *xq)
     return sat;
 }
 
+#if OCSVM_DESCRIPTOR == 1
+/* ------------------------------------------------- dac trung luoi (grid) */
+/* Giong src/ocsvm_fpga/features/grid_flow.py: o (r, c) theo hang, trong moi o
+ * [mean u, mean v, mean |v|] (+ max |v| khi GRID_NSTATS >= 4, + std |v| khi GRID_NSTATS == 5)
+ * (+ mean |I2 - I1| khi GRID_DIFF). Bien o lay tu GRID_Y_EDGES / GRID_X_EDGES (co the khong deu). */
+void ofe_grid_descriptor(const float *u, const float *v, const float *prev, const float *cur, float *vec)
+{
+#ifndef GRID_DIFF
+#define GRID_DIFF 0
+#endif
+    static const int ye[GRID_ROWS + 1] = GRID_Y_EDGES;
+    static const int xe[GRID_COLS + 1] = GRID_X_EDGES;
+#ifndef GRID_NSTATS
+#define GRID_NSTATS (GRID_STATS_RICH ? 5 : 3)                /* header cu */
+#endif
+    const int ns = GRID_NSTATS + GRID_DIFF;             /* so gia tri moi o */
+    for (int r = 0; r < GRID_ROWS; ++r)
+        for (int c = 0; c < GRID_COLS; ++c) {
+            double su = 0, sv = 0, sm = 0, mx = 0, sd = 0;
+            int n = 0;
+            for (int y = ye[r]; y < ye[r + 1]; ++y)
+                for (int x = xe[c]; x < xe[c + 1]; ++x) {
+                    int i = y * FRAME_W + x;
+                    float m = hypotf(u[i], v[i]);
+                    su += u[i]; sv += v[i]; sm += m;
+                    if (GRID_DIFF) sd += fabsf(cur[i] - prev[i]);
+                    if (m > mx) mx = m;
+                    ++n;
+                }
+            float *o = vec + (r * GRID_COLS + c) * ns;
+            double mu = sm / n;
+            o[0] = (float)(su / n);
+            o[1] = (float)(sv / n);
+            o[2] = (float)mu;
+            if (GRID_NSTATS >= 4) o[3] = (float)mx;
+            if (GRID_NSTATS == 5) {
+                double ss = 0;
+                for (int y = ye[r]; y < ye[r + 1]; ++y)
+                    for (int x = xe[c]; x < xe[c + 1]; ++x) {
+                        double d = hypotf(u[y * FRAME_W + x], v[y * FRAME_W + x]) - mu;
+                        ss += d * d;
+                    }
+                o[4] = (float)sqrt(ss / n);              /* do lech chuan tong the, nhu numpy.std */
+            }
+            if (GRID_DIFF) o[GRID_NSTATS] = (float)(sd / n); /* mean |I2 - I1| */
+        }
+#if defined(GRID_LOG_SCALE)
+    if (GRID_LOG_SCALE > 0.0f) {                         /* nen bien do: c*sign(x)*log(1+|x|/c) */
+        const int dim = GRID_ROWS * GRID_COLS * ns;
+        for (int i = 0; i < dim; ++i) {
+            float x = vec[i], ax = fabsf(x);
+            vec[i] = (x < 0 ? -1.0f : 1.0f) * GRID_LOG_SCALE * log1pf(ax / GRID_LOG_SCALE);
+        }
+    }
+#endif
+}
+#endif
+
 /* ---------------------------------------------------------- toan bo 1 khung */
 int ofe_process_frame(ofe_ctx_t *ctx, const uint8_t *gray, ofe_result_t *out)
 {
@@ -317,6 +375,12 @@ int ofe_process_frame(ofe_ctx_t *ctx, const uint8_t *gray, ofe_result_t *out)
     for (int i = 0; i < OFE_NPIX; ++i) mot += hypotf(ctx->u[i], ctx->v[i]);
     out->mean_motion = (float)(mot / OFE_NPIX);
 
+#if OCSVM_DESCRIPTOR == 1
+    memset(out->cov, 0, sizeof(out->cov));
+    ofe_grid_descriptor(ctx->u, ctx->v, ctx->prev, ctx->cur, out->vec);
+    out->n_saturated = ofe_quantize(out->vec, out->xq);
+    return 1;
+#else
     double cov[FEAT_D * FEAT_D], m[FEAT_D * FEAT_D];
     ofe_covariance(ctx->u, ctx->v, cov);
     for (int i = 0; i < FEAT_D * FEAT_D; ++i) out->cov[i] = (float)cov[i];
@@ -328,6 +392,7 @@ int ofe_process_frame(ofe_ctx_t *ctx, const uint8_t *gray, ofe_result_t *out)
     ofe_vech_scaled(m, FEAT_D, out->vec);
     out->n_saturated = ofe_quantize(out->vec, out->xq);
     return 1;
+#endif
 }
 
 /* ------------------------------------------------------------------- UART */
@@ -382,6 +447,21 @@ double ofe_smoother_push(ofe_smoother_t *s, double f)
     s->sum += val;
     s->pos = (s->pos + 1) % k;
     return s->sum / s->n;
+}
+
+void ofe_alarm_init(ofe_alarm_t *a) { a->active = 0; a->below = 0; }
+
+int ofe_alarm_update(ofe_alarm_t *a, double f_smoothed)
+{
+    /* f_smoothed tu ofe_smoother_push: mode 1 da la |f|, mode 0 la f → diem so = -f */
+    const double score = OCSVM_DECISION_MODE == 1 ? f_smoothed : -f_smoothed;
+    if (!a->active) {
+        if (score > OCSVM_ALARM_ON_SCORE) { a->active = 1; a->below = 0; }
+    } else {
+        a->below = (score < OCSVM_ALARM_OFF_SCORE) ? a->below + 1 : 0;
+        if (a->below > OCSVM_ALARM_HOLD) a->active = 0;
+    }
+    return a->active;
 }
 
 int ofe_is_alarm(double f_smoothed)

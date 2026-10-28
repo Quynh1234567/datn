@@ -6,8 +6,12 @@
  *   -> Gaussian 5x5 (bien REFLECT_101 nhu OpenCV)
  *   -> Horn-Schunck (bien REPLICATE, so vong lap co dinh)
  *   -> dao ham sai phan trung tam (nhu numpy.gradient)
- *   -> vector diem anh F1..F4 -> ma tran hiep bien C (d x d)
- *   -> logm(C) bang Jacobi -> vech (ngoai cheo x sqrt 2)
+ *   OCSVM_DESCRIPTOR = 0 (hiep bien):
+ *     -> vector diem anh F1..F4 -> ma tran hiep bien C (d x d)
+ *     -> logm(C) bang Jacobi -> vech (ngoai cheo x sqrt 2)
+ *   OCSVM_DESCRIPTOR = 1 (luoi):
+ *     -> chia khung thanh GRID_ROWS x GRID_COLS o, moi o [mean u, mean v, mean |v|]
+ *        (+ [max |v|, std |v|] neu GRID_STATS_RICH)
  *   -> chuan hoa (mean, inv_std) -> luong tu Q(DATA_FRAC) int16 -> gui FPGA
  *
  * Moi tham so lay tu ocsvm_params.h (sinh boi scripts/04_export_fpga.py).
@@ -20,8 +24,11 @@
 #include <stdint.h>
 #include "ocsvm_params.h"
 
-#if defined(OCSVM_DESCRIPTOR) && OCSVM_DESCRIPTOR != 0
-#error "Firmware chi ho tro dac trung hiep bien (descriptor = covariance). Xuat lai ocsvm_params.h voi cau hinh mac dinh."
+#ifndef OCSVM_DESCRIPTOR
+#define OCSVM_DESCRIPTOR 0
+#endif
+#if OCSVM_DESCRIPTOR != 0 && OCSVM_DESCRIPTOR != 1
+#error "OCSVM_DESCRIPTOR phai la 0 (hiep bien) hoac 1 (luoi)"
 #endif
 
 #ifdef __cplusplus
@@ -65,6 +72,9 @@ void ofe_covariance(const float *u, const float *v, double *cov /* d*d */);
 void ofe_spd_logm(const double *c, double *logc, int d);
 void ofe_vech_scaled(const double *m, int d, float *vec);
 int  ofe_quantize(const float *vec, int16_t *xq);
+#if OCSVM_DESCRIPTOR == 1
+void ofe_grid_descriptor(const float *u, const float *v, const float *prev, const float *cur, float *vec);
+#endif
 
 /* --------------------------- giao tiep UART voi FPGA ------------------------
  * ESP32 -> FPGA : 0xAA 0x55 | DIM x int16 LE | XOR(payload)
@@ -88,6 +98,16 @@ typedef struct {
 void   ofe_smoother_init(ofe_smoother_t *s);
 double ofe_smoother_push(ofe_smoother_t *s, double f);   /* tra ve f lam muot     */
 int    ofe_is_alarm(double f_smoothed);                  /* 1 = bat thuong        */
+
+/* Canh bao co tre (hysteresis): khong bat/tat lien tuc khi diem dao dong quanh nguong */
+#ifndef OCSVM_ALARM_HOLD
+#define OCSVM_ALARM_ON_SCORE  (OCSVM_DECISION_MODE == 1 ? OCSVM_THR_FLOAT : -OCSVM_THR_FLOAT)
+#define OCSVM_ALARM_OFF_SCORE OCSVM_ALARM_ON_SCORE
+#define OCSVM_ALARM_HOLD      0
+#endif
+typedef struct { int active; int below; } ofe_alarm_t;
+void ofe_alarm_init(ofe_alarm_t *a);
+int  ofe_alarm_update(ofe_alarm_t *a, double f_smoothed);  /* 1 = dang canh bao */
 
 #ifdef __cplusplus
 }
