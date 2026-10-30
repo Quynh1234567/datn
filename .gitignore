@@ -1,5 +1,5 @@
 # Bỏ qua dữ liệu video và cache
-data/
+/data/
 outputs*/
 
 # Bỏ qua các file model nặng và rác python
