@@ -33,4 +33,15 @@ Với video thật và mô hình `outputs/models/detector.joblib`, báo cáo `ou
 - sai số theo σ của bộ chuẩn hóa, x_q lệch bao nhiêu LSB, **cờ bất thường trùng bao nhiêu %**;
 - bảng quét độ rộng u, v (12–16 bit) và \|v\| floor/round (`--sweep`).
 
+## A4 – có cần train lại không
+
+```bash
+python scripts/21_hs_auc.py --jobs 8                  # Test + val, cache outputs/features_hw/<hash>/
+python scripts/21_hs_auc.py --jobs 8 --max-videos 6   # thử nhanh
+```
+
+So AUC trên Test của (1) đặc trưng số thực gốc, (2) HS số nguyên → mô hình số thực, (3) HS số nguyên → OC-SVM
+số nguyên (f_q như trên board), cùng tỉ lệ báo động giả trên val; kết luận giữ mô hình nếu AUC (3) giảm ≤ `--tol`
+(mặc định 0,01). Báo cáo `outputs/hs_auc/<thời gian>/report.md`. Nếu phải train lại: `--splits train val test`.
+
 Véc-tơ RTL (`outputs/hw_vectors/case_XX/`): `img1/img2.mem` (ảnh đã Gauss) → `deriv.mem` → `uv_iter1.mem` → `uv_final.mem` → `mag.mem` → `cell_sums.mem` → `feat_mean.mem` → `feat_log.mem` → `feat_z.mem` → `expected.txt` (f_q, cờ). Testbench so từng tầng nên khi sai biết ngay khối nào sai. Định dạng gói bit ghi ở đầu mỗi file và trong `hs_export.py`.

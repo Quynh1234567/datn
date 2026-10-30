@@ -12,6 +12,8 @@ from pathlib import Path
 import numpy as np
 
 from ..config import resolve_path
+from ..hwmodel import hs_q as HQ
+from ..hwmodel import preproc_q as PQ
 from ..data.dataset import VideoItem, find_annotation, load_frame_labels
 from ..data.video_reader import iter_sensor_frames, smooth_frame, video_info
 from .covariance import covariance_descriptor, multi_threshold_descriptors
@@ -32,9 +34,34 @@ HS_KEYS = ("alpha", "num_iter", "intensity_scale")
 
 def descriptor_kind(cfg) -> str:
     kind = cfg.features.get("descriptor", "covariance") or "covariance"
-    if kind not in ("covariance", "grid_flow"):
-        raise SystemExit(f"features.descriptor phải là covariance | grid_flow, nhận '{kind}'")
+    if kind not in ("covariance", "grid_flow", "grid_flow_hw"):
+        raise SystemExit(f"features.descriptor phải là covariance | grid_flow | grid_flow_hw, nhận '{kind}'")
+    if kind == "grid_flow_hw":
+        check_hw_config(cfg)
     return kind
+
+
+def check_hw_config(cfg) -> None:
+    """grid_flow_hw = đặc trưng tính bằng ĐÚNG Golden Model số nguyên của phần cứng
+    (hwmodel/preproc_q: Gauss ESP32 · hwmodel/hs_q: Horn–Schunck + lưới + nén log FPGA).
+    Các tham số của phần cứng là hằng số → cấu hình phải khớp, nếu không thì báo rõ."""
+    pp, of, f = cfg.preprocess, cfg.optical_flow, cfg.features
+    want = {
+        "preprocess.width": (pp.width, HQ.W), "preprocess.height": (pp.height, HQ.H),
+        "preprocess.gaussian_ksize": (pp.gaussian_ksize, 5), "preprocess.gaussian_sigma": (float(pp.gaussian_sigma), 1.0),
+        "optical_flow.method": (of.get("method", "hs"), "hs"), "optical_flow.alpha": (float(of.alpha), 2.0),
+        "optical_flow.num_iter": (int(of.num_iter), HQ.DEFAULT.n_iter),
+        "optical_flow.intensity_scale": (float(of.intensity_scale), 1.0),
+        "features.grid_rows": (int(f.grid_rows), HQ.GRID_R), "features.grid_cols": (int(f.grid_cols), HQ.GRID_C),
+        "features.grid_stats": (f.get("grid_stats", "basic"), "basic"),
+        "features.grid_log_scale": (float(f.get("grid_log_scale", 0) or 0), HQ.DEFAULT.log_c),
+        "features.grid_diff": (bool(f.get("grid_diff", False)), False),
+        "features.grid_row_edges": (f.get("grid_row_edges") or None, None),
+        "features.grid_col_edges": (f.get("grid_col_edges") or None, None),
+    }
+    bad = [f"{k} = {got!r} (phần cứng cần {need!r})" for k, (got, need) in want.items() if got != need]
+    if bad:
+        raise SystemExit("descriptor = grid_flow_hw nhưng cấu hình khác phần cứng:\n  - " + "\n  - ".join(bad))
 
 
 def threshold_grid(cfg) -> list[float]:
@@ -60,6 +87,11 @@ def feature_signature(cfg) -> str:
     if kind == "covariance":
         ft = {k: v for k, v in dict(cfg.features).items()
               if k not in ("motion_threshold", "motion_threshold_grid") + GRID_KEYS}
+    elif kind == "grid_flow_hw":
+        # đặc trưng do Golden Model tính → phụ thuộc phiên bản đặc tả và mọi tham số số học
+        from dataclasses import asdict
+        ft = {"descriptor": "grid_flow_hw", "spec": getattr(HQ, "SPEC_VERSION", "?"),
+              "hs": asdict(HQ.DEFAULT), "gauss": [int(k) for k in PQ.K]}
     else:
         # cache theo khối 10×10: cách chia lưới, thống kê, grid_diff, nén biên độ đều áp dụng lúc ĐỌC cache
         ft = {"descriptor": "grid_flow", "cache": "blocks10"}
@@ -69,7 +101,7 @@ def feature_signature(cfg) -> str:
     else:
         of = {k: v for k, v in of.items() if k not in HS_KEYS}
     pp = {k: v for k, v in dict(cfg.preprocess).items()
-          if k != "cache_frames" and not (k == "mask_regions" and not v)}
+          if k not in ("cache_frames", "frames_cache_dir") and not (k == "mask_regions" and not v)}
     key = json.dumps({"pp": pp, "of": of, "ft": ft,
                       "grid": threshold_grid(cfg)}, sort_keys=True)
     return hashlib.md5(key.encode()).hexdigest()[:10]
@@ -86,7 +118,14 @@ def frames_signature(cfg) -> str:
 
 
 def frame_pair_descriptor(prev: np.ndarray, cur: np.ndarray, cfg):
-    """Một cặp khung (I_i, I_{i+1}) → (vec, C hoặc None, |flow| trung bình)."""
+    """Một cặp khung (I_i, I_{i+1}) → (vec, C hoặc None, |flow| trung bình).
+
+    grid_flow_hw: prev, cur là ảnh uint8 CHƯA làm mượt (to_sensor_frame) – Gauss số nguyên làm bên trong."""
+    if descriptor_kind(cfg) == "grid_flow_hw":
+        if prev.dtype != np.uint8 or cur.dtype != np.uint8:
+            raise ValueError("grid_flow_hw cần ảnh uint8 chưa làm mượt (to_sensor_frame), không phải smooth_frame")
+        vq, motion = hw_pair_features(PQ.gauss5_q(prev), PQ.gauss5_q(cur))
+        return vq.astype(np.float64) / (1 << HQ.DEFAULT.data_frac), None, motion
     u, v = compute_flow(prev, cur, cfg.optical_flow)
     motion = float(np.mean(np.hypot(u, v)))
     if descriptor_kind(cfg) == "grid_flow":
@@ -99,14 +138,28 @@ def frame_pair_descriptor(prev: np.ndarray, cur: np.ndarray, cfg):
     return vec, c, motion
 
 
+def hw_pair_features(g1: np.ndarray, g2: np.ndarray, lut=None) -> tuple[np.ndarray, float]:
+    """Hai ảnh đã Gauss số nguyên → (48 đặc trưng Q5.10 int16 sau nén log, |v| trung bình px).
+    Giống từng bit khối trích đặc trưng trên FPGA."""
+    tr = HQ.features_q(g1, g2, lut=lut)
+    return tr.log_q.astype(np.int16), float(tr.mag.mean()) / (1 << HQ.DEFAULT.fu)
+
+
+def frames_cache_root(cfg, out_root: Path | None) -> Path | None:
+    """Thư mục chứa cache khung: preprocess.frames_cache_dir (dùng chung giữa các outputs_*) hoặc out_root."""
+    d = cfg.preprocess.get("frames_cache_dir")
+    return resolve_path(d) if d else out_root
+
+
 def load_sensor_frames(item: VideoItem, cfg, out_root: Path | None) -> tuple[np.ndarray, np.ndarray]:
     """Khung uint8 (N, H, W) + chỉ số khung gốc. Dùng cache nếu preprocess.cache_frames.
 
     Giải mã video 1080p là phần tốn thời gian nhất; cache này chỉ phụ thuộc kích
     thước/crop/frame_step nên đổi tham số HS hay đặc trưng không phải giải mã lại.
     """
-    use_cache = bool(cfg.preprocess.get("cache_frames", False)) and out_root is not None
-    path = out_root / "frames" / frames_signature(cfg) / item.split / f"{item.uid}.npz" if use_cache else None
+    root = frames_cache_root(cfg, out_root)
+    use_cache = bool(cfg.preprocess.get("cache_frames", False)) and root is not None
+    path = root / "frames" / frames_signature(cfg) / item.split / f"{item.uid}.npz" if use_cache else None
     if path is not None and path.exists():
         d = np.load(path)
         return d["frames"], d["frame_idx"]
@@ -133,7 +186,21 @@ def extract_video(item: VideoItem, cfg, out_root: Path | None = None) -> dict:
     dark = float(cfg.preprocess.get("skip_dark_below", 0) or 0)
     vecs, covs, frame_ids, motion = [], [], [], []
     prev = None
-    for idx, raw in zip(fidx, frames):
+    if kind == "grid_flow_hw":
+        lut = HQ.log_lut()
+        for idx, raw in zip(fidx, frames):
+            g = PQ.gauss5_q(np.ascontiguousarray(raw, np.uint8))
+            if dark > 0 and PQ.frame_sum(g) < dark * g.size:   # = TB ảnh Gauss số nguyên < ngưỡng (giống ESP32)
+                prev = None
+                continue
+            if prev is not None:
+                vq, m = hw_pair_features(prev, g, lut)
+                vecs.append(vq)
+                frame_ids.append(int(idx))
+                motion.append(m)
+            prev = g
+    float_frames = () if kind == "grid_flow_hw" else zip(fidx, frames)   # đường số thực (covariance / grid_flow)
+    for idx, raw in float_frames:
         frame = smooth_frame(raw, cfg.preprocess)
         if dark > 0 and float(frame.mean()) < dark:     # khung đen/chuyển cảnh → ngắt cặp
             prev = None
@@ -151,7 +218,9 @@ def extract_video(item: VideoItem, cfg, out_root: Path | None = None) -> dict:
         prev = frame
     info = video_info(item.path)
     out = {}
-    if kind == "covariance":
+    if kind == "grid_flow_hw":
+        out["Xq"] = np.stack(vecs).astype(np.int16) if vecs else np.zeros((0, HQ.DIM), np.int16)
+    elif kind == "covariance":
         d = len(vecs[0][0]) if vecs else 0
         out["Xg"] = np.asarray(vecs, np.float32).reshape(len(vecs), len(grid), d)
         out["thr_grid"] = np.asarray(grid, np.float64)
@@ -231,7 +300,9 @@ def load_split(items: list[VideoItem], cfg, out_root: Path) -> dict:
             continue
         d = dict(np.load(path))
         d["X"] = select_threshold(d, cfg)
-        if descriptor_kind(cfg) == "grid_flow":
+        if descriptor_kind(cfg) == "grid_flow_hw":       # đã nén log trong phần cứng → chỉ đổi Q5.10 → số thực
+            d["X"] = d["Xq"].astype(np.float64) / (1 << HQ.DEFAULT.data_frac)
+        elif descriptor_kind(cfg) == "grid_flow":
             f = cfg.features
             if "B" in d:                                 # ghép lưới từ thống kê khối
                 ye, xe = grid_layout(f, int(cfg.preprocess.height), int(cfg.preprocess.width))

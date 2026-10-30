@@ -74,11 +74,12 @@ def params_vh(p: hq.HSParams, scaler: hq.ScalerQ | None) -> str:
     return f"""// ============================================================================
 // hs_params.vh - sinh tu dong boi src/ocsvm_fpga/hwmodel/hs_export.py
 // Khoi trich dac trung tren FPGA: dao ham -> Horn-Schunck -> luoi 4x4 -> nen log -> z-score
-// Dac ta: claude/hs_fixed_point_spec.md (muc 3-8). File ASCII de tuong thich moi cong cu.
+// Dac ta: claude/hs_fixed_point_spec.md ban {getattr(hq, 'SPEC_VERSION', '?')} (muc 3-8). File ASCII.
 // ============================================================================
 `ifndef HS_PARAMS_VH
 `define HS_PARAMS_VH
 
+localparam integer UV_FORMAT_CHECK = {p.wu * 100 + p.fu};   // 1306 = Q6.6 13 bit (ban 0.4)
 localparam integer IMG_W       = {hq.W};
 localparam integer IMG_H       = {hq.H};
 // tang 1-2: dao ham x4 va he so a = Ix4/D16, b = Iy4/D16

@@ -1,0 +1,21 @@
+# =============================================================================
+#  A4 – Huấn luyện bằng ĐÚNG pipeline số nguyên của phần cứng (đặc tả hs_fixed_point_spec.md bản 0.4)
+#    ESP32: Gauss 5×5 /1024 → ảnh 8 bit · FPGA: Horn–Schunck Q6.6 → lưới 4×4 → bảng log → Q5.10
+#  Đặc trưng lúc train = đặc trưng phần cứng tính ra, khớp từng bit (hwmodel/preproc_q.py, hs_q.py).
+#
+#    python scripts/01_extract_features.py --config configs/hw.yaml --jobs 8
+#    python scripts/02_train.py            --config configs/hw.yaml
+#    python scripts/03_evaluate.py         --config configs/hw.yaml
+#    python scripts/04_export_fpga.py      --config configs/hw.yaml
+#
+#  Kết quả ghi vào outputs_hw/ – mô hình số thực cũ trong outputs/ giữ nguyên để so sánh.
+#  Mọi tham số còn lại (dữ liệu, ν, γ, ngưỡng, làm mượt…) lấy từ default.yaml.
+# =============================================================================
+project:
+  output_dir: outputs_hw
+data:
+  splits_from: outputs/splits.json     # dùng ĐÚNG cách chia tập của mô hình cũ → so sánh công bằng
+preprocess:
+  frames_cache_dir: outputs            # dùng lại cache khung 160×120 đã giải mã (không đọc lại video 1080p)
+features:
+  descriptor: grid_flow_hw

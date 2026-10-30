@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+SPEC_VERSION = "0.4"   # phải trùng claude/hs_fixed_point_spec.md và scripts/20_hs_golden.py
+
 H, W = 120, 160
 GRID_R, GRID_C = 4, 4
 CELL_H, CELL_W = H // GRID_R, W // GRID_C          # 30 × 40 = 1 200 điểm
@@ -134,6 +136,48 @@ class HSTrace:
 
 
 def horn_schunck_q(i1: np.ndarray, i2: np.ndarray, p: HSParams = DEFAULT, keep_iter1: bool = False) -> HSTrace:
+    """Bản nhanh (bộ đệm cấp phát một lần, u và v xử lý chung, số 32 bit khi không thể tràn).
+    Kết quả GIỐNG TỪNG BIT horn_schunck_q_ref – kiểm tra trong scripts/20_hs_golden.py --selftest."""
+    ix, iy, it = derivatives4(i1, i2)
+    d16, a, b = coeffs(ix, iy, p)
+    # int32 an toàn khi (2·cạnh + góc)·AVG_MUL < 2³¹  ⇔  12·2^(wu−1)·AVG_MUL < 2³¹  (wu ≤ 15)
+    dt = np.int32 if 12 * (1 << (p.wu - 1)) * p.avg_mul + (1 << p.avg_shift) < (1 << 31) else np.int64
+    h, w = ix.shape
+    uv = np.zeros((2, h, w), dt)
+    pad = np.zeros((2, h + 2, w + 2), dt)
+    ixd, iyd = ix.astype(dt), iy.astype(dt)
+    itd = (it << p.fu).astype(dt)
+    ab = np.stack([a, b]).astype(np.int64)
+    lo, hi = -(1 << (p.wu - 1)), (1 << (p.wu - 1)) - 1
+    half_avg, half_c = dt(1 << (p.avg_shift - 1)), np.int64(1 << (p.coef_frac - 1))
+    tr = HSTrace(ix, iy, it, d16, a, b, None, None)
+    max_n, n_sat = 0, 0
+    for k in range(p.n_iter):
+        pad[:, 1:-1, 1:-1] = uv                     # biên replicate
+        pad[:, 0, 1:-1] = uv[:, 0]
+        pad[:, -1, 1:-1] = uv[:, -1]
+        pad[:, :, 0] = pad[:, :, 1]
+        pad[:, :, -1] = pad[:, :, -2]
+        e = pad[:, :-2, 1:-1] + pad[:, 2:, 1:-1] + pad[:, 1:-1, :-2] + pad[:, 1:-1, 2:]
+        c = pad[:, :-2, :-2] + pad[:, :-2, 2:] + pad[:, 2:, :-2] + pad[:, 2:, 2:]
+        avg = ((2 * e + c) * dt(p.avg_mul) + half_avg) >> p.avg_shift
+        n = ixd * avg[0] + iyd * avg[1] + itd
+        max_n = max(max_n, int(n.max()), -int(n.min()))
+        new = avg - ((ab * n.astype(np.int64) + half_c) >> p.coef_frac)
+        bad = (new < lo) | (new > hi)
+        if bad.any():
+            n_sat += int(bad.sum())
+            np.clip(new, lo, hi, out=new)
+        uv = new.astype(dt)
+        if k == 0 and keep_iter1:
+            tr.u1, tr.v1 = uv[0].astype(np.int64), uv[1].astype(np.int64)
+    tr.u, tr.v = uv[0].astype(np.int64), uv[1].astype(np.int64)
+    tr.n_sat, tr.max_abs_n = n_sat, max_n
+    return tr
+
+
+def horn_schunck_q_ref(i1: np.ndarray, i2: np.ndarray, p: HSParams = DEFAULT, keep_iter1: bool = False) -> HSTrace:
+    """Bản tham chiếu viết thẳng theo đặc tả (chậm hơn) – dùng để kiểm tra bản nhanh."""
     ix, iy, it = derivatives4(i1, i2)
     d16, a, b = coeffs(ix, iy, p)
     u = np.zeros_like(ix)

@@ -121,6 +121,12 @@ def main():
     history = deque(maxlen=args.history)
     step = max(1, int(pp.frame_step))
     dark = float(pp.get("skip_dark_below", 0) or 0)
+    hw = cfg.features.get("descriptor", "covariance") == "grid_flow_hw"
+    if hw:
+        from ocsvm_fpga.data.video_reader import to_sensor_frame
+        from ocsvm_fpga.hwmodel import hs_q as HQ
+        from ocsvm_fpga.hwmodel import preproc_q as PQ
+        hw_sc = HQ.quantize_scaler(det.scaler.mean, det.scaler.scale)
 
     cap = cv2.VideoCapture(args.video if args.video else args.camera)
     if not cap.isOpened():
@@ -138,14 +144,22 @@ def main():
         idx += 1
         if idx % step == 0:                                   # khung đưa vào mô hình (giống lúc huấn luyện)
             src = apply_masks(frame, args.video or "", pp)
-            gray = preprocess_frame(src, pp)
-            if dark > 0 and float(gray.mean()) < dark:        # khung đen → ngắt cặp, như lúc huấn luyện
+            if hw:                                            # đường số nguyên: ảnh uint8 thô, Gauss làm bên trong
+                gray = to_sensor_frame(src, pp)
+                is_dark = dark > 0 and PQ.frame_sum(PQ.gauss5_q(gray)) < dark * gray.size
+            else:
+                gray = preprocess_frame(src, pp)
+                is_dark = dark > 0 and float(gray.mean()) < dark
+            if is_dark:                                       # khung đen → ngắt cặp, như lúc huấn luyện
                 prev = None
             else:
                 if prev is not None:
                     vec, _, motion = frame_pair_descriptor(prev, gray, cfg)
                     s_float = float(det.model.score_from_decision(det.decision(vec[None]))[0])
-                    xq, _ = fx.quantize_input(vec[None])
+                    if hw:                                    # z số nguyên đúng như FPGA
+                        xq = HQ.standardize_q(np.round(vec[None] * 1024).astype(np.int64), hw_sc)
+                    else:
+                        xq, _ = fx.quantize_input(vec[None])
                     f_q = fx.decision_q(xq)
                     s_fix = float(det.model.score_from_decision(fx.decision_float_equiv(f_q))[0])
                     win_float.append(s_float)

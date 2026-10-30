@@ -26,7 +26,12 @@ def main():
     splits = get_splits(cfg, out, rng)
     jobs = args.jobs or int(cfg.project.n_jobs)
     fs = cfg.features.feature_set
-    if cfg.features.get("descriptor", "covariance") == "grid_flow":
+    if cfg.features.get("descriptor", "covariance") == "grid_flow_hw":
+        from ocsvm_fpga.hwmodel import hs_q
+        log.info(f"Đặc trưng PHẦN CỨNG (grid_flow_hw, đặc tả {getattr(hs_q, 'SPEC_VERSION', '?')}): Gauss số nguyên "
+                 f"→ HS Q{hs_q.DEFAULT.wu - hs_q.DEFAULT.fu - 1}.{hs_q.DEFAULT.fu} → lưới 4×4 → bảng log → 48 chiều "
+                 f"Q5.10 | cache = {feature_signature(cfg)}")
+    elif cfg.features.get("descriptor", "covariance") == "grid_flow":
         from ocsvm_fpga.features.grid_flow import grid_dim
         f = cfg.features
         log.info(f"Đặc trưng lưới ({f.get('grid_stats', 'basic')}{', diff' if f.get('grid_diff') else ''}) → véc-tơ "

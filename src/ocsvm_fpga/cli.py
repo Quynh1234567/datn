@@ -31,6 +31,10 @@ def setup(args, step: str):
 def get_splits(cfg, out: Path, rng: np.random.Generator, rebuild: bool = False) -> dict[str, list[VideoItem]]:
     """Chia tập một lần rồi lưu outputs/splits.json để mọi bước dùng cùng một cách chia."""
     path = out / "splits.json"
+    src = cfg.data.get("splits_from")                 # dùng lại cách chia của outputs khác (vd outputs_hw ← outputs)
+    if not path.exists() and src and resolve_path(src).exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(resolve_path(src).read_text(encoding="utf-8"), encoding="utf-8")
     if path.exists() and not rebuild:
         raw = load_json(path)
         splits = {k: [VideoItem(Path(d["path"]), k, Path(d["labels"]) if d["labels"] else None)
@@ -51,7 +55,7 @@ def get_splits(cfg, out: Path, rng: np.random.Generator, rebuild: bool = False) 
 def expected_feature_dim(cfg) -> int:
     """Số chiều véc-tơ đặc trưng mà cấu hình hiện tại sẽ tạo ra."""
     f = cfg.features
-    if f.get("descriptor", "covariance") == "grid_flow":
+    if f.get("descriptor", "covariance") in ("grid_flow", "grid_flow_hw"):
         from .features.grid_flow import grid_dim
         return grid_dim(f, int(cfg.preprocess.height), int(cfg.preprocess.width))
     from .features.covariance import descriptor_dim

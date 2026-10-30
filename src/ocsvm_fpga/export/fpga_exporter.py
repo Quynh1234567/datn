@@ -97,7 +97,9 @@ def write_c_model_data(fx: FixedPointOCSVM, path: Path, stamp: str) -> None:
 
 
 def export_all(fx: FixedPointOCSVM, cfg, out_dir: Path, test_x_raw: np.ndarray | None,
-               test_y: np.ndarray | None, rng: np.random.Generator, logger=None) -> dict:
+               test_y: np.ndarray | None, rng: np.random.Generator, logger=None, quantize_fn=None) -> dict:
+    """quantize_fn(x_raw) → (x_q, số phần tử bão hòa): cách lượng tử véc-tơ kiểm thử. Mặc định
+    fx.quantize_input (chuẩn hóa số thực); grid_flow_hw truyền đường z số nguyên giống FPGA."""
     p = fx.p
     det = fx.det
     n_sv, dim = fx.sv_q.shape
@@ -129,7 +131,7 @@ def export_all(fx: FixedPointOCSVM, cfg, out_dir: Path, test_x_raw: np.ndarray |
         else:
             sel = rng.choice(len(test_x_raw), k, replace=False)
         sel = np.sort(sel)
-        xq, _ = fx.quantize_input(test_x_raw[sel])
+        xq, _ = (quantize_fn or fx.quantize_input)(test_x_raw[sel])
         fq = fx.decision_q(xq)
         write_mem(mem / "test_input.mem", xq, p.data_width)
         write_packed_mem(mem / "test_input_packed.mem", xq, p.data_width)
@@ -185,7 +187,7 @@ localparam integer SMOOTH_WIN  = {det.smoothing};      // trung binh truot f(x) 
     pp, of, ft = cfg.preprocess, cfg.optical_flow, cfg.features
     names = FEATURE_SETS[ft.feature_set]
 
-    _g = ft.get("descriptor", "covariance") == "grid_flow"
+    _g = ft.get("descriptor", "covariance") in ("grid_flow", "grid_flow_hw")
     if _g:
         from ..features.grid_flow import grid_layout
         _yv, _xv = grid_layout(ft, int(pp.height), int(pp.width))

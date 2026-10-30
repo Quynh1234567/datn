@@ -41,6 +41,11 @@ PQ = _load("preproc_q", HW / "preproc_q.py")
 HQ = _load("hs_q", HW / "hs_q.py")
 HX = _load("hs_export", HW / "hs_export.py")
 STAT = ["u", "v", "|v|"]
+NEED_SPEC = "0.4"
+if getattr(HQ, "SPEC_VERSION", None) != NEED_SPEC or (HQ.DEFAULT.wu, HQ.DEFAULT.fu) != (13, 6):
+    sys.exit(f"LỖI PHIÊN BẢN: {HW / 'hs_q.py'} là bản {getattr(HQ, 'SPEC_VERSION', 'cũ (trước 0.4)')}, "
+             f"u, v = {HQ.DEFAULT.wu} bit/{HQ.DEFAULT.fu} bit lẻ; script cần bản {NEED_SPEC} (Q6.6).\n"
+             "→ Giải nén đè CẢ thư mục src/ocsvm_fpga/hwmodel/ từ a2_golden_hs.zip rồi chạy lại.")
 
 
 # --------------------------------------------------------------------------- nguồn khung
@@ -262,7 +267,7 @@ def sweep(pairs, model):
 def report(out, s, sw, src, exported, model):
     f = lambda x, n=4: f"{x:.{n}f}"  # noqa: E731
     L = ["# Golden Model số nguyên khối trích đặc trưng FPGA – sai số so với pipeline train", "",
-         f"Thời gian {time.strftime('%Y-%m-%d %H:%M:%S')} · nguồn: {src} · {s['pairs']} cặp khung · "
+         f"Đặc tả {HQ.SPEC_VERSION} · thời gian {time.strftime('%Y-%m-%d %H:%M:%S')} · nguồn: {src} · {s['pairs']} cặp khung · "
          f"tham số: u, v Q{HQ.DEFAULT.wu - HQ.DEFAULT.fu - 1}.{HQ.DEFAULT.fu} {HQ.DEFAULT.wu} bit, a/b 15 bit 18 bit lẻ, |v| {HQ.DEFAULT.mag_mode}, bảng log 2 vùng", "",
          "## Sai số đặc trưng (sau nén log, trước chuẩn hóa)", "",
          "| Nguồn sai số | max | p99 | TB | max theo u / v / \\|v\\| |", "|---|---|---|---|---|"]
@@ -358,6 +363,14 @@ def selftest():
     uff, _ = HQ.horn_schunck_float(i1, i2)
     check(abs(um - uff[10:-10, 10:-10].mean()) < 0.01 and abs(um - 1) < 0.15,
           f"tầng 3: dịch 1 px → u TB {um:.3f} (số thực {uff[10:-10, 10:-10].mean():.3f})")
+    # 4b. bản nhanh = bản tham chiếu, từng bit
+    ok = True
+    for P in (HQ.DEFAULT, HQ.HSParams(wu=17, fu=10)):
+        for x1, x2 in ((i1, i2), (a, b)):
+            f, r = HQ.horn_schunck_q(x1, x2, P, True), HQ.horn_schunck_q_ref(x1, x2, P, True)
+            ok &= all(np.array_equal(p_, q_) for p_, q_ in ((f.u, r.u), (f.v, r.v), (f.u1, r.u1), (f.v1, r.v1)))
+            ok &= f.n_sat == r.n_sat and f.max_abs_n == r.max_abs_n
+    check(ok, "tầng 3: bản nhanh (bộ đệm cố định, int32) khớp từng bit bản tham chiếu theo đặc tả")
     # 5. |v|
     uu = rng.integers(-4096, 4096, 100000)
     vv = rng.integers(-4096, 4096, 100000)
