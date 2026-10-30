@@ -1,0 +1,111 @@
+menu "Camera timing test (ĐATN – mục 2.1)"
+
+    choice CAMT_BOARD
+        prompt "Board camera (sơ đồ chân)"
+        default CAMT_BOARD_S3_EYE
+        config CAMT_BOARD_S3_EYE
+            bool "ESP32-S3-EYE / Freenove ESP32-S3-WROOM CAM / ESP32-S3-CAM N16R8 (cùng sơ đồ chân)"
+        config CAMT_BOARD_XIAO_S3
+            bool "Seeed XIAO ESP32S3 Sense"
+        config CAMT_BOARD_CUSTOM
+            bool "Tự khai báo trong main/board_pins.h"
+    endchoice
+
+    config CAMT_XCLK_MHZ
+        int "Tần số XCLK cấp cho OV5640 (MHz)"
+        range 6 24
+        default 20
+        help
+            Ảnh hưởng trực tiếp tới FPS. Nếu khởi tạo lỗi hoặc ảnh sọc, thử 10 hoặc 24.
+
+    config CAMT_TARGET_FPS_X10
+        int "FPS mục tiêu × 10 (125 = 12,5 fps; 250 = 25 fps; 0 = giữ mặc định của driver)"
+        range 0 300
+        default 125
+        help
+            Đặt FPS chính xác bằng thanh ghi VTS (0x380E/0x380F) của OV5640:
+            FPS = PCLK / (HTS × VTS). Firmware đo chu kỳ hiện tại, tính VTS mới,
+            ghi vào cảm biến rồi đo lại để xác nhận (tối đa 3 vòng).
+            12,5 fps → mỗi khung cách nhau đúng 80 ms = khoảng cách lúc train.
+
+    config CAMT_AEC_MAX_FOLLOW_VTS
+        bool "Cho phép tự động phơi sáng dùng hết chiều dài khung mới"
+        depends on CAMT_TARGET_FPS_X10 != 0
+        default y
+        help
+            Ghi giới hạn phơi sáng tối đa của AEC (0x3A02/03, 0x3A14/15) = VTS − 4,
+            để ở 12,5 fps ảnh sáng hơn. Nếu ảnh bất thường (quá sáng, nhấp nháy) thì tắt.
+
+    config CAMT_AE_LEVEL
+        int "Mức bù phơi sáng AE (−2…2, 0 = mặc định)"
+        range -2 2
+        default 0
+
+    config CAMT_FB_COUNT
+        int "Số frame buffer"
+        range 1 4
+        default 2
+
+    config CAMT_GRAB_LATEST
+        bool "CAMERA_GRAB_LATEST (luôn lấy khung mới nhất)"
+        default y
+        help
+            y: driver ghi đè khung cũ, ứng dụng luôn nhận khung mới nhất (khuyến nghị cho xử lý thời gian thực).
+            n: CAMERA_GRAB_WHEN_EMPTY, khung xếp hàng, có thể nhận khung đã cũ.
+
+    config CAMT_FB_IN_PSRAM
+        bool "Đặt frame buffer trong PSRAM"
+        default n
+        help
+            160x120 xám chỉ 19 200 byte nên mặc định đặt trong DRAM (nhanh, không cần PSRAM).
+
+    config CAMT_WARMUP_FRAMES
+        int "Số khung bỏ qua lúc đầu (chờ tự động phơi sáng ổn định)"
+        range 0 300
+        default 30
+
+    config CAMT_N_FRAMES
+        int "Số khung ghi timestamp"
+        range 50 2000
+        default 500
+
+    config CAMT_TARGET_INTERVAL_MS
+        int "Khoảng cách cặp khung danh định (ms)"
+        range 20 500
+        default 80
+        help
+            80 ms = khoảng cách lúc train trên IITB (25 fps, frame_step = 2).
+
+    config CAMT_TOL_PCT
+        int "Sai lệch cho phép của một cặp khung (%)"
+        range 1 50
+        default 20
+
+    config CAMT_SIM_LOAD_MS
+        int "Giả lập thời gian xử lý mỗi khung (ms, 0 = tắt)"
+        range 0 500
+        default 0
+        help
+            Mô phỏng thời gian ESP32 bận (Gauss + gửi SPI...) để xem khung có bị rớt không.
+
+    config CAMT_LOCK_EXPOSURE
+        bool "Khóa phơi sáng và độ lợi sau warm-up"
+        default n
+        help
+            Trong phòng tối OV5640 có thể kéo dài thời gian phơi sáng làm giảm FPS.
+            Bật mục này để kiểm tra FPS khi phơi sáng cố định.
+
+    config CAMT_SEND_FRAMES
+        int "Số ảnh mẫu gửi về PC (base64 qua console)"
+        range 0 10
+        default 3
+
+    config CAMT_SWEEP
+        bool "Quét XCLK 10/16/20/24 MHz x fb_count 1/2 trước khi đo chính"
+        default n
+
+    config CAMT_REPEAT
+        bool "Lặp lại phép đo liên tục"
+        default n
+
+endmenu

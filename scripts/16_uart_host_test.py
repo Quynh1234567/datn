@@ -6,7 +6,7 @@ so với test_expected_score.mem / test_expected_label.mem (Golden Model) và đ
 khứ hồi mỗi gói.
 
     pip install pyserial
-    python scripts/16_uart_host_test.py --port COM5 --baud 115200
+    python scripts/16_uart_host_test.py --port COM8 --baud 115200
     python scripts/16_uart_host_test.py --mock          # không cần board: giả lập FPGA bằng Golden Model
 
 Gói vào : 0xAA 0x55 | DIM × int16 LE | XOR byte dữ liệu

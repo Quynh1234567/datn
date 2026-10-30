@@ -1,0 +1,84 @@
+menu "Preproc test (ĐATN – mục 2.2–2.3)"
+
+    choice PP_BOARD
+        prompt "Board camera (sơ đồ chân)"
+        default PP_BOARD_S3_EYE
+        config PP_BOARD_S3_EYE
+            bool "ESP32-S3-EYE / Freenove ESP32-S3-WROOM CAM / ESP32-S3-CAM N16R8"
+        config PP_BOARD_XIAO_S3
+            bool "Seeed XIAO ESP32S3 Sense"
+        config PP_BOARD_CUSTOM
+            bool "Tự khai báo trong main/board_pins.h"
+    endchoice
+
+    config PP_XCLK_MHZ
+        int "XCLK (MHz)"
+        range 6 24
+        default 20
+
+    config PP_TARGET_FPS_X10
+        int "FPS mục tiêu × 10 (125 = 12,5 fps → 80 ms/khung; 0 = mặc định driver)"
+        range 0 300
+        default 125
+
+    config PP_AEC_MAX_FOLLOW_VTS
+        bool "Nới phơi sáng tối đa theo VTS mới"
+        default y
+
+    config PP_AE_LEVEL
+        int "Bù phơi sáng AE (−2…2)"
+        range -2 2
+        default 0
+
+    choice PP_BORDER
+        prompt "Kiểu biên Gauss (phải giống code train)"
+        default PP_BORDER_REFLECT101
+        config PP_BORDER_REFLECT101
+            bool "REFLECT_101 (mặc định của cv2.GaussianBlur)"
+        config PP_BORDER_REPLICATE
+            bool "REPLICATE"
+    endchoice
+
+    config PP_DARK_MEAN
+        int "Ngưỡng khung tối (độ sáng TB của ảnh đã làm mượt)"
+        range 0 255
+        default 15
+        help
+            Giống preprocess.skip_dark_below trong configs/default.yaml.
+
+    config PP_TARGET_INTERVAL_MS
+        int "Khoảng cách cặp khung danh định (ms)"
+        default 80
+
+    config PP_TOL_PCT
+        int "Sai lệch cho phép một cặp (%)"
+        range 1 50
+        default 20
+
+    config PP_WARMUP_FRAMES
+        int "Số khung bỏ qua lúc đầu"
+        default 30
+
+    config PP_BENCH_ITERS
+        int "Số lần lặp benchmark Gauss trên một khung camera"
+        range 10 2000
+        default 200
+
+    config PP_N_FRAMES
+        int "Số khung đo trong vòng thời gian thực"
+        range 50 2000
+        default 300
+        help
+            300 khung = 24 s ở 12,5 fps. Trong lúc đo, che kín ống kính khoảng 3 giây để thử khung tối.
+
+    config PP_N_SAMPLES
+        int "Số ảnh GỐC gửi về PC để kiểm tra bit-exact"
+        range 0 16
+        default 6
+
+    config PP_EXTRA_LOAD_MS
+        int "Giả lập thêm thời gian bận mỗi khung (ms) – vd gửi SPI"
+        range 0 200
+        default 0
+
+endmenu

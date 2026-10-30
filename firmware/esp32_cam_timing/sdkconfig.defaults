@@ -1,0 +1,17 @@
+CONFIG_IDF_TARGET="esp32s3"
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_FREERTOS_HZ=1000
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=10
+
+# PSRAM: phần lớn board ESP32-S3-CAM (N8R8, N16R8, XIAO Sense) dùng PSRAM Octal.
+# Board dùng PSRAM Quad (vd N4R2): đổi sang CONFIG_SPIRAM_MODE_QUAD=y.
+# Không có PSRAM vẫn chạy được (frame buffer 160x120 xám nằm trong DRAM).
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_SPIRAM_IGNORE_NOTFOUND=y
+
+# Console giữ mặc định UART0 @ 115200 (khớp scripts/17_cam_grab.py và 18_cam_timing.py).
+# Board chỉ có cổng USB native: menuconfig → Component config → ESP System Settings →
+# Channel for console output → USB Serial/JTAG Controller.
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200
