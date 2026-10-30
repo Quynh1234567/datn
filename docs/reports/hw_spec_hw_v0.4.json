@@ -1,0 +1,94 @@
+{
+  "model": {
+    "dim": 48,
+    "n_sv": 109,
+    "gamma": 0.042,
+    "rho": 0.10660849025815237,
+    "descriptor": "grid_flow_hw"
+  },
+  "fixed_point": {
+    "DATA": [
+      16,
+      10
+    ],
+    "COEF": [
+      16,
+      14
+    ],
+    "GAMMA": [
+      16,
+      20,
+      44040
+    ],
+    "LUT": [
+      10,
+      16,
+      34
+    ],
+    "ACC": [
+      48,
+      30
+    ],
+    "DIFF_W": 17,
+    "DIST_W": 40,
+    "T_W": 56,
+    "PROD_W": 33
+  },
+  "memory_bits_total": 102608,
+  "latency": [
+    {
+      "fclk": 100.0,
+      "P": 1,
+      "cycles": 5244,
+      "us": 52.44,
+      "dsp": 4,
+      "sv_bram18": 6
+    },
+    {
+      "fclk": 100.0,
+      "P": 4,
+      "cycles": 1320,
+      "us": 13.2,
+      "dsp": 7,
+      "sv_bram18": 6
+    },
+    {
+      "fclk": 100.0,
+      "P": 8,
+      "cycles": 666,
+      "us": 6.66,
+      "dsp": 11,
+      "sv_bram18": 8
+    },
+    {
+      "fclk": 100.0,
+      "P": 16,
+      "cycles": 339,
+      "us": 3.39,
+      "dsp": 19,
+      "sv_bram18": 8
+    },
+    {
+      "fclk": 100.0,
+      "P": 48,
+      "cycles": 121,
+      "us": 1.21,
+      "dsp": 51,
+      "sv_bram18": 22
+    }
+  ],
+  "uart": [
+    {
+      "baud": 115200,
+      "req_bytes": 99,
+      "resp_bytes": 9,
+      "ms": 9.375
+    },
+    {
+      "baud": 921600,
+      "req_bytes": 99,
+      "resp_bytes": 9,
+      "ms": 1.171875
+    }
+  ]
+}
