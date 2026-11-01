@@ -1,0 +1,2785 @@
+{
+  "threshold": 0.10077430773681187,
+  "smoothing": 3,
+  "val_false_alarm_rate": 0.020001746877456546,
+  "test_raw": {
+    "n_frames": 90594,
+    "abnormal_ratio": 0.4765437004658145,
+    "threshold": 0.10077430773681187,
+    "accuracy": 0.6145440095370555,
+    "precision": 0.730863921217547,
+    "recall": 0.3025572130084314,
+    "f1": 0.4279536072341262,
+    "confusion_matrix[tn,fp,fn,tp]": [
+      42612,
+      4810,
+      30110,
+      13062
+    ],
+    "auc": 0.7222725114286281,
+    "eer": 0.3284765125856941,
+    "eer_threshold": 0.04809372366087644,
+    "youden_threshold": 0.0535653273331164
+  },
+  "test_smoothed": {
+    "n_frames": 90594,
+    "abnormal_ratio": 0.4765437004658145,
+    "threshold": 0.10077430773681187,
+    "accuracy": 0.6106033512153123,
+    "precision": 0.7685556840601402,
+    "recall": 0.2616742332993607,
+    "f1": 0.39042007222961417,
+    "confusion_matrix[tn,fp,fn,tp]": [
+      44020,
+      3402,
+      31875,
+      11297
+    ],
+    "auc": 0.7347909694720534,
+    "eer": 0.3214668086405346,
+    "eer_threshold": 0.0458941608308289,
+    "youden_threshold": 0.054537645387637536
+  },
+  "test_mean_per_video_auc": 0.7682385104778255,
+  "video_level_auc": {
+    "auc": 0.8814285714285713,
+    "normal_videos": 10,
+    "abnormal_videos": 140
+  },
+  "per_class": {
+    "BagExchange": {
+      "auc": 0.5722490438211147,
+      "videos": 12,
+      "recall": 0.050805246554872986
+    },
+    "CarryObject": {
+      "auc": 0.766912450733735,
+      "videos": 36,
+      "recall": 0.20345188284518828
+    },
+    "Chasing": {
+      "auc": 0.932920285759888,
+      "videos": 18,
+      "recall": 0.6026557711950971
+    },
+    "Cycling": {
+      "auc": 0.8196707106316528,
+      "videos": 11,
+      "recall": 0.37715179968701096
+    },
+    "Fighting": {
+      "auc": 0.871519360889292,
+      "videos": 8,
+      "recall": 0.38893476465730803
+    },
+    "Hiding": {
+      "auc": 0.6917788020060749,
+      "videos": 10,
+      "recall": 0.09602272727272727
+    },
+    "Loitering": {
+      "auc": 0.8648339613342535,
+      "videos": 8,
+      "recall": 0.20780537252914344
+    },
+    "PlayingWithBall": {
+      "auc": 0.8875585580066677,
+      "videos": 14,
+      "recall": 0.3489675210127633
+    },
+    "Protest": {
+      "auc": 0.722993080857111,
+      "videos": 11,
+      "recall": 0.302834008097166
+    },
+    "SuddenRunning": {
+      "auc": 0.9729294180217725,
+      "videos": 12,
+      "recall": 0.8116169544740973
+    }
+  },
+  "events": {
+    "params": {
+      "on": 0.10077430773681187,
+      "off": 0.039792296018775916,
+      "hold": 12,
+      "median_normal": -0.03885231491384852,
+      "settings": {
+        "hysteresis": true,
+        "off_margin": 0.5,
+        "off_percentile": 85.0,
+        "hold_seconds": 1.0,
+        "video_fps": 25.0
+      }
+    },
+    "fps": 25.0,
+    "plain": {
+      "events": {
+        "events": 143,
+        "detected": 129,
+        "event_recall": 0.9020979020979021,
+        "delay_median_s": 0.88,
+        "delay_mean_s": 2.8031007751937986,
+        "coverage_mean": 0.390071907033541,
+        "false_alarm_events": 354,
+        "normal_hours": 1.053822222222222,
+        "false_alarms_per_hour": 335.92003711357603,
+        "list": [
+          {
+            "video": 0,
+            "start_frame": 140,
+            "end_frame": 440,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.56,
+            "coverage": 0.019867549668874173
+          },
+          {
+            "video": 2,
+            "start_frame": 150,
+            "end_frame": 834,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 5.04,
+            "coverage": 0.20116618075801748
+          },
+          {
+            "video": 3,
+            "start_frame": 168,
+            "end_frame": 264,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.0,
+            "coverage": 0.9183673469387755
+          },
+          {
+            "video": 4,
+            "start_frame": 90,
+            "end_frame": 1250,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 3.12,
+            "coverage": 0.5077452667814114
+          },
+          {
+            "video": 5,
+            "start_frame": 134,
+            "end_frame": 224,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 1.04,
+            "coverage": 0.5652173913043478
+          },
+          {
+            "video": 6,
+            "start_frame": 12,
+            "end_frame": 424,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 7,
+            "start_frame": 30,
+            "end_frame": 2046,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 5.84,
+            "coverage": 0.2398414271555996
+          },
+          {
+            "video": 8,
+            "start_frame": 16,
+            "end_frame": 300,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 9,
+            "start_frame": 170,
+            "end_frame": 350,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.24,
+            "coverage": 0.02197802197802198
+          },
+          {
+            "video": 10,
+            "start_frame": 84,
+            "end_frame": 430,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.0,
+            "coverage": 0.5057471264367817
+          },
+          {
+            "video": 11,
+            "start_frame": 4,
+            "end_frame": 832,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 5.68,
+            "coverage": 0.016867469879518072
+          },
+          {
+            "video": 12,
+            "start_frame": 476,
+            "end_frame": 2890,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.4,
+            "coverage": 0.22019867549668873
+          },
+          {
+            "video": 13,
+            "start_frame": 4,
+            "end_frame": 1022,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 5.84,
+            "coverage": 0.3176470588235294
+          },
+          {
+            "video": 14,
+            "start_frame": 30,
+            "end_frame": 240,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 14,
+            "start_frame": 1060,
+            "end_frame": 1304,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 15,
+            "start_frame": 526,
+            "end_frame": 636,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.16,
+            "coverage": 0.875
+          },
+          {
+            "video": 17,
+            "start_frame": 336,
+            "end_frame": 504,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 18,
+            "start_frame": 158,
+            "end_frame": 250,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.16,
+            "coverage": 0.8936170212765957
+          },
+          {
+            "video": 19,
+            "start_frame": 276,
+            "end_frame": 384,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.4,
+            "coverage": 0.8181818181818182
+          },
+          {
+            "video": 20,
+            "start_frame": 40,
+            "end_frame": 380,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 0.2573099415204678
+          },
+          {
+            "video": 21,
+            "start_frame": 260,
+            "end_frame": 500,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 6.72,
+            "coverage": 0.2396694214876033
+          },
+          {
+            "video": 22,
+            "start_frame": 106,
+            "end_frame": 172,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.64,
+            "coverage": 0.6764705882352942
+          },
+          {
+            "video": 23,
+            "start_frame": 620,
+            "end_frame": 2500,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 13.44,
+            "coverage": 0.036131774707757705
+          },
+          {
+            "video": 24,
+            "start_frame": 146,
+            "end_frame": 390,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 2.16,
+            "coverage": 0.13008130081300814
+          },
+          {
+            "video": 25,
+            "start_frame": 300,
+            "end_frame": 440,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.88,
+            "coverage": 0.7605633802816901
+          },
+          {
+            "video": 26,
+            "start_frame": 4,
+            "end_frame": 84,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.0,
+            "coverage": 0.6341463414634146
+          },
+          {
+            "video": 27,
+            "start_frame": 166,
+            "end_frame": 1270,
+            "detected": false,
+            "cls": "BagExchange"
+          },
+          {
+            "video": 28,
+            "start_frame": 400,
+            "end_frame": 650,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 31,
+            "start_frame": 740,
+            "end_frame": 2022,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.0,
+            "coverage": 0.397196261682243
+          },
+          {
+            "video": 32,
+            "start_frame": 60,
+            "end_frame": 2878,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 1.68,
+            "coverage": 0.0950354609929078
+          },
+          {
+            "video": 33,
+            "start_frame": 1110,
+            "end_frame": 1344,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.72,
+            "coverage": 0.2542372881355932
+          },
+          {
+            "video": 34,
+            "start_frame": 90,
+            "end_frame": 544,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 35,
+            "start_frame": 4,
+            "end_frame": 404,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 2.32,
+            "coverage": 0.3482587064676617
+          },
+          {
+            "video": 36,
+            "start_frame": 320,
+            "end_frame": 520,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 5.28,
+            "coverage": 0.32673267326732675
+          },
+          {
+            "video": 37,
+            "start_frame": 490,
+            "end_frame": 1810,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.16,
+            "coverage": 0.3040847201210287
+          },
+          {
+            "video": 38,
+            "start_frame": 96,
+            "end_frame": 330,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 39,
+            "start_frame": 380,
+            "end_frame": 790,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 0.0,
+            "coverage": 0.15048543689320387
+          },
+          {
+            "video": 40,
+            "start_frame": 178,
+            "end_frame": 334,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 41,
+            "start_frame": 746,
+            "end_frame": 832,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.56,
+            "coverage": 0.7272727272727273
+          },
+          {
+            "video": 42,
+            "start_frame": 146,
+            "end_frame": 1372,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 5.68,
+            "coverage": 0.5781758957654723
+          },
+          {
+            "video": 43,
+            "start_frame": 470,
+            "end_frame": 770,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 1.6,
+            "coverage": 0.271523178807947
+          },
+          {
+            "video": 44,
+            "start_frame": 446,
+            "end_frame": 560,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 0.27586206896551724
+          },
+          {
+            "video": 45,
+            "start_frame": 540,
+            "end_frame": 2600,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 37.2,
+            "coverage": 0.03200775945683802
+          },
+          {
+            "video": 47,
+            "start_frame": 200,
+            "end_frame": 3338,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 1.52,
+            "coverage": 0.4732484076433121
+          },
+          {
+            "video": 48,
+            "start_frame": 506,
+            "end_frame": 592,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.0,
+            "coverage": 0.7954545454545454
+          },
+          {
+            "video": 49,
+            "start_frame": 4,
+            "end_frame": 2248,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 1.2,
+            "coverage": 0.14781834372217276
+          },
+          {
+            "video": 50,
+            "start_frame": 262,
+            "end_frame": 394,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 1.28,
+            "coverage": 0.4626865671641791
+          },
+          {
+            "video": 51,
+            "start_frame": 210,
+            "end_frame": 320,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.32,
+            "coverage": 0.5892857142857143
+          },
+          {
+            "video": 52,
+            "start_frame": 160,
+            "end_frame": 240,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 0.9024390243902439
+          },
+          {
+            "video": 53,
+            "start_frame": 926,
+            "end_frame": 1034,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 0.8181818181818182
+          },
+          {
+            "video": 54,
+            "start_frame": 56,
+            "end_frame": 2620,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 1.6,
+            "coverage": 0.21356196414653156
+          },
+          {
+            "video": 55,
+            "start_frame": 276,
+            "end_frame": 344,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.48,
+            "coverage": 0.8285714285714286
+          },
+          {
+            "video": 56,
+            "start_frame": 4,
+            "end_frame": 1260,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.56,
+            "coverage": 0.35294117647058826
+          },
+          {
+            "video": 57,
+            "start_frame": 200,
+            "end_frame": 1356,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 8.0,
+            "coverage": 0.2694300518134715
+          },
+          {
+            "video": 58,
+            "start_frame": 4,
+            "end_frame": 782,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 9.28,
+            "coverage": 0.14615384615384616
+          },
+          {
+            "video": 59,
+            "start_frame": 4,
+            "end_frame": 280,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 0.15827338129496402
+          },
+          {
+            "video": 60,
+            "start_frame": 170,
+            "end_frame": 300,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.24,
+            "coverage": 0.21212121212121213
+          },
+          {
+            "video": 61,
+            "start_frame": 278,
+            "end_frame": 404,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.32,
+            "coverage": 0.25
+          },
+          {
+            "video": 62,
+            "start_frame": 1100,
+            "end_frame": 1334,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 4.56,
+            "coverage": 0.4491525423728814
+          },
+          {
+            "video": 63,
+            "start_frame": 60,
+            "end_frame": 344,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 8.96,
+            "coverage": 0.16783216783216784
+          },
+          {
+            "video": 64,
+            "start_frame": 500,
+            "end_frame": 690,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 3.76,
+            "coverage": 0.4895833333333333
+          },
+          {
+            "video": 65,
+            "start_frame": 250,
+            "end_frame": 400,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 4.0,
+            "coverage": 0.23684210526315788
+          },
+          {
+            "video": 66,
+            "start_frame": 56,
+            "end_frame": 574,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 1.12,
+            "coverage": 0.2653846153846154
+          },
+          {
+            "video": 67,
+            "start_frame": 238,
+            "end_frame": 424,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 0.3191489361702128
+          },
+          {
+            "video": 68,
+            "start_frame": 416,
+            "end_frame": 1900,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 3.52,
+            "coverage": 0.05114401076716016
+          },
+          {
+            "video": 69,
+            "start_frame": 116,
+            "end_frame": 612,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 3.28,
+            "coverage": 0.42570281124497994
+          },
+          {
+            "video": 70,
+            "start_frame": 192,
+            "end_frame": 350,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 0.175
+          },
+          {
+            "video": 71,
+            "start_frame": 430,
+            "end_frame": 690,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.24,
+            "coverage": 0.015267175572519083
+          },
+          {
+            "video": 72,
+            "start_frame": 46,
+            "end_frame": 104,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.32,
+            "coverage": 0.7666666666666667
+          },
+          {
+            "video": 72,
+            "start_frame": 196,
+            "end_frame": 254,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.32,
+            "coverage": 0.8333333333333334
+          },
+          {
+            "video": 73,
+            "start_frame": 278,
+            "end_frame": 350,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 0.8918918918918919
+          },
+          {
+            "video": 74,
+            "start_frame": 830,
+            "end_frame": 1844,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.48,
+            "coverage": 0.5098425196850394
+          },
+          {
+            "video": 75,
+            "start_frame": 60,
+            "end_frame": 1290,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 0.0,
+            "coverage": 0.4837662337662338
+          },
+          {
+            "video": 76,
+            "start_frame": 4,
+            "end_frame": 270,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 1.92,
+            "coverage": 0.7388059701492538
+          },
+          {
+            "video": 78,
+            "start_frame": 500,
+            "end_frame": 752,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 4.48,
+            "coverage": 0.33858267716535434
+          },
+          {
+            "video": 79,
+            "start_frame": 30,
+            "end_frame": 240,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.16,
+            "coverage": 0.660377358490566
+          },
+          {
+            "video": 80,
+            "start_frame": 580,
+            "end_frame": 680,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.08,
+            "coverage": 0.23529411764705882
+          },
+          {
+            "video": 80,
+            "start_frame": 1026,
+            "end_frame": 1104,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.96,
+            "coverage": 0.325
+          },
+          {
+            "video": 81,
+            "start_frame": 400,
+            "end_frame": 524,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 2.88,
+            "coverage": 0.015873015873015872
+          },
+          {
+            "video": 82,
+            "start_frame": 90,
+            "end_frame": 4210,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 21.68,
+            "coverage": 0.1717612809315866
+          },
+          {
+            "video": 83,
+            "start_frame": 880,
+            "end_frame": 2180,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 51.36,
+            "coverage": 0.013824884792626729
+          },
+          {
+            "video": 84,
+            "start_frame": 330,
+            "end_frame": 620,
+            "detected": false,
+            "cls": "BagExchange"
+          },
+          {
+            "video": 85,
+            "start_frame": 226,
+            "end_frame": 510,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 9.6,
+            "coverage": 0.07692307692307693
+          },
+          {
+            "video": 86,
+            "start_frame": 300,
+            "end_frame": 650,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 1.76,
+            "coverage": 0.3352272727272727
+          },
+          {
+            "video": 87,
+            "start_frame": 90,
+            "end_frame": 210,
+            "detected": false,
+            "cls": "Cycling"
+          },
+          {
+            "video": 88,
+            "start_frame": 80,
+            "end_frame": 260,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.88,
+            "coverage": 0.5054945054945055
+          },
+          {
+            "video": 89,
+            "start_frame": 800,
+            "end_frame": 1004,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 6.08,
+            "coverage": 0.2621359223300971
+          },
+          {
+            "video": 91,
+            "start_frame": 88,
+            "end_frame": 264,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 3.2,
+            "coverage": 0.056179775280898875
+          },
+          {
+            "video": 92,
+            "start_frame": 4,
+            "end_frame": 2870,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 1.6,
+            "coverage": 0.1799163179916318
+          },
+          {
+            "video": 93,
+            "start_frame": 100,
+            "end_frame": 294,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 0.21428571428571427
+          },
+          {
+            "video": 94,
+            "start_frame": 60,
+            "end_frame": 2800,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 0.16,
+            "coverage": 0.21735959153902262
+          },
+          {
+            "video": 95,
+            "start_frame": 466,
+            "end_frame": 600,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.72,
+            "coverage": 0.7647058823529411
+          },
+          {
+            "video": 96,
+            "start_frame": 186,
+            "end_frame": 354,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.08,
+            "coverage": 0.7058823529411765
+          },
+          {
+            "video": 97,
+            "start_frame": 310,
+            "end_frame": 550,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 3.36,
+            "coverage": 0.1652892561983471
+          },
+          {
+            "video": 98,
+            "start_frame": 180,
+            "end_frame": 290,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.88,
+            "coverage": 0.8035714285714286
+          },
+          {
+            "video": 99,
+            "start_frame": 850,
+            "end_frame": 1300,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 2.72,
+            "coverage": 0.28761061946902655
+          },
+          {
+            "video": 100,
+            "start_frame": 20,
+            "end_frame": 200,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.16,
+            "coverage": 0.7142857142857143
+          },
+          {
+            "video": 101,
+            "start_frame": 4,
+            "end_frame": 764,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.72,
+            "coverage": 0.5616797900262467
+          },
+          {
+            "video": 102,
+            "start_frame": 48,
+            "end_frame": 110,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.64,
+            "coverage": 0.4375
+          },
+          {
+            "video": 103,
+            "start_frame": 4,
+            "end_frame": 80,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.08,
+            "coverage": 0.5128205128205128
+          },
+          {
+            "video": 104,
+            "start_frame": 300,
+            "end_frame": 410,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 0.7857142857142857
+          },
+          {
+            "video": 105,
+            "start_frame": 4,
+            "end_frame": 618,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.0,
+            "coverage": 0.20454545454545456
+          },
+          {
+            "video": 106,
+            "start_frame": 340,
+            "end_frame": 544,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.08,
+            "coverage": 0.6213592233009708
+          },
+          {
+            "video": 107,
+            "start_frame": 160,
+            "end_frame": 244,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 2.56,
+            "coverage": 0.20930232558139536
+          },
+          {
+            "video": 108,
+            "start_frame": 216,
+            "end_frame": 300,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.08,
+            "coverage": 0.8372093023255814
+          },
+          {
+            "video": 109,
+            "start_frame": 96,
+            "end_frame": 204,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 3.6,
+            "coverage": 0.18181818181818182
+          },
+          {
+            "video": 110,
+            "start_frame": 336,
+            "end_frame": 500,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.48,
+            "coverage": 0.1686746987951807
+          },
+          {
+            "video": 111,
+            "start_frame": 360,
+            "end_frame": 910,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 7.68,
+            "coverage": 0.07246376811594203
+          },
+          {
+            "video": 112,
+            "start_frame": 130,
+            "end_frame": 600,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 0.0,
+            "coverage": 0.538135593220339
+          },
+          {
+            "video": 113,
+            "start_frame": 620,
+            "end_frame": 910,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 115,
+            "start_frame": 286,
+            "end_frame": 360,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 1.92,
+            "coverage": 0.3684210526315789
+          },
+          {
+            "video": 116,
+            "start_frame": 166,
+            "end_frame": 272,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 4.0,
+            "coverage": 0.07407407407407407
+          },
+          {
+            "video": 117,
+            "start_frame": 200,
+            "end_frame": 292,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 118,
+            "start_frame": 4,
+            "end_frame": 992,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.0,
+            "coverage": 0.6141414141414141
+          },
+          {
+            "video": 119,
+            "start_frame": 60,
+            "end_frame": 964,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.24,
+            "coverage": 0.3730684326710817
+          },
+          {
+            "video": 120,
+            "start_frame": 266,
+            "end_frame": 414,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 3.52,
+            "coverage": 0.12
+          },
+          {
+            "video": 121,
+            "start_frame": 530,
+            "end_frame": 744,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 5.52,
+            "coverage": 0.3611111111111111
+          },
+          {
+            "video": 122,
+            "start_frame": 40,
+            "end_frame": 1978,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 8.48,
+            "coverage": 0.2649484536082474
+          },
+          {
+            "video": 123,
+            "start_frame": 80,
+            "end_frame": 436,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 6.08,
+            "coverage": 0.547486033519553
+          },
+          {
+            "video": 124,
+            "start_frame": 178,
+            "end_frame": 324,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.64,
+            "coverage": 0.21621621621621623
+          },
+          {
+            "video": 125,
+            "start_frame": 4,
+            "end_frame": 548,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.96,
+            "coverage": 0.13553113553113552
+          },
+          {
+            "video": 126,
+            "start_frame": 40,
+            "end_frame": 300,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.48,
+            "coverage": 0.09923664122137404
+          },
+          {
+            "video": 127,
+            "start_frame": 30,
+            "end_frame": 1444,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 4.32,
+            "coverage": 0.3107344632768362
+          },
+          {
+            "video": 128,
+            "start_frame": 200,
+            "end_frame": 280,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 130,
+            "start_frame": 76,
+            "end_frame": 1416,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 1.04,
+            "coverage": 0.12518628912071536
+          },
+          {
+            "video": 131,
+            "start_frame": 200,
+            "end_frame": 424,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 132,
+            "start_frame": 40,
+            "end_frame": 2044,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 4.08,
+            "coverage": 0.2931206380857428
+          },
+          {
+            "video": 133,
+            "start_frame": 80,
+            "end_frame": 998,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.08,
+            "coverage": 0.18695652173913044
+          },
+          {
+            "video": 135,
+            "start_frame": 506,
+            "end_frame": 660,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 2.96,
+            "coverage": 0.5128205128205128
+          },
+          {
+            "video": 136,
+            "start_frame": 220,
+            "end_frame": 304,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 0.8837209302325582
+          },
+          {
+            "video": 137,
+            "start_frame": 60,
+            "end_frame": 3278,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.16,
+            "coverage": 0.29316770186335406
+          },
+          {
+            "video": 138,
+            "start_frame": 4,
+            "end_frame": 1960,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 1.68,
+            "coverage": 0.5587334014300307
+          },
+          {
+            "video": 139,
+            "start_frame": 4,
+            "end_frame": 224,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.4,
+            "coverage": 0.8378378378378378
+          },
+          {
+            "video": 140,
+            "start_frame": 200,
+            "end_frame": 404,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 1.28,
+            "coverage": 0.17475728155339806
+          },
+          {
+            "video": 141,
+            "start_frame": 278,
+            "end_frame": 420,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 0.375
+          },
+          {
+            "video": 142,
+            "start_frame": 76,
+            "end_frame": 200,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.96,
+            "coverage": 0.2222222222222222
+          },
+          {
+            "video": 143,
+            "start_frame": 90,
+            "end_frame": 474,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 1.84,
+            "coverage": 0.031088082901554404
+          },
+          {
+            "video": 144,
+            "start_frame": 496,
+            "end_frame": 618,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 1.44,
+            "coverage": 0.7096774193548387
+          },
+          {
+            "video": 145,
+            "start_frame": 250,
+            "end_frame": 1764,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 0.0,
+            "coverage": 0.2598944591029024
+          },
+          {
+            "video": 146,
+            "start_frame": 200,
+            "end_frame": 394,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 4.56,
+            "coverage": 0.01020408163265306
+          },
+          {
+            "video": 147,
+            "start_frame": 500,
+            "end_frame": 588,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 2.0,
+            "coverage": 0.28888888888888886
+          },
+          {
+            "video": 148,
+            "start_frame": 330,
+            "end_frame": 2350,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 9.44,
+            "coverage": 0.01582591493570722
+          },
+          {
+            "video": 149,
+            "start_frame": 1330,
+            "end_frame": 1460,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 0.8181818181818182
+          }
+        ],
+        "per_class": {
+          "BagExchange": {
+            "events": 12,
+            "recall": 0.8333333333333334,
+            "delay_median_s": 5.6
+          },
+          "CarryObject": {
+            "events": 36,
+            "recall": 0.8611111111111112,
+            "delay_median_s": 1.28
+          },
+          "Chasing": {
+            "events": 19,
+            "recall": 1.0,
+            "delay_median_s": 0.48
+          },
+          "Cycling": {
+            "events": 12,
+            "recall": 0.9166666666666666,
+            "delay_median_s": 0.08
+          },
+          "Fighting": {
+            "events": 8,
+            "recall": 1.0,
+            "delay_median_s": 4.16
+          },
+          "Hiding": {
+            "events": 11,
+            "recall": 0.45454545454545453,
+            "delay_median_s": 1.84
+          },
+          "Loitering": {
+            "events": 8,
+            "recall": 1.0,
+            "delay_median_s": 2.88
+          },
+          "PlayingWithBall": {
+            "events": 14,
+            "recall": 1.0,
+            "delay_median_s": 1.08
+          },
+          "Protest": {
+            "events": 11,
+            "recall": 1.0,
+            "delay_median_s": 0.4
+          },
+          "SuddenRunning": {
+            "events": 12,
+            "recall": 1.0,
+            "delay_median_s": 0.16
+          }
+        },
+        "val_false_alarms_per_hour": 133.6361254258014
+      },
+      "frames": {
+        "precision": 0.7685556840601402,
+        "recall": 0.2616742332993607,
+        "f1": 0.39042007222961417,
+        "false_alarm_rate": 0.07173885538357724
+      }
+    },
+    "hysteresis": {
+      "events": {
+        "events": 143,
+        "detected": 130,
+        "event_recall": 0.9090909090909091,
+        "delay_median_s": 0.64,
+        "delay_mean_s": 2.5175384615384613,
+        "coverage_mean": 0.7272630730897368,
+        "false_alarm_events": 95,
+        "normal_hours": 1.053822222222222,
+        "false_alarms_per_hour": 90.14803255872803,
+        "list": [
+          {
+            "video": 0,
+            "start_frame": 140,
+            "end_frame": 440,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.56,
+            "coverage": 0.2913907284768212
+          },
+          {
+            "video": 2,
+            "start_frame": 150,
+            "end_frame": 834,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 0.0,
+            "coverage": 0.6501457725947521
+          },
+          {
+            "video": 3,
+            "start_frame": 168,
+            "end_frame": 264,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 4,
+            "start_frame": 90,
+            "end_frame": 1250,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 0.0,
+            "coverage": 0.9569707401032702
+          },
+          {
+            "video": 5,
+            "start_frame": 134,
+            "end_frame": 224,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 1.04,
+            "coverage": 0.717391304347826
+          },
+          {
+            "video": 6,
+            "start_frame": 12,
+            "end_frame": 424,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 7,
+            "start_frame": 30,
+            "end_frame": 2046,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 5.84,
+            "coverage": 0.7829534192269574
+          },
+          {
+            "video": 8,
+            "start_frame": 16,
+            "end_frame": 300,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 9,
+            "start_frame": 170,
+            "end_frame": 350,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 0.8901098901098901
+          },
+          {
+            "video": 10,
+            "start_frame": 84,
+            "end_frame": 430,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.0,
+            "coverage": 0.9080459770114943
+          },
+          {
+            "video": 11,
+            "start_frame": 4,
+            "end_frame": 832,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 5.68,
+            "coverage": 0.2433734939759036
+          },
+          {
+            "video": 12,
+            "start_frame": 476,
+            "end_frame": 2890,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.4,
+            "coverage": 0.30711920529801323
+          },
+          {
+            "video": 13,
+            "start_frame": 4,
+            "end_frame": 1022,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 5.84,
+            "coverage": 0.8568627450980392
+          },
+          {
+            "video": 14,
+            "start_frame": 30,
+            "end_frame": 240,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 14,
+            "start_frame": 1060,
+            "end_frame": 1304,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 15,
+            "start_frame": 526,
+            "end_frame": 636,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.16,
+            "coverage": 0.9642857142857143
+          },
+          {
+            "video": 17,
+            "start_frame": 336,
+            "end_frame": 504,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 18,
+            "start_frame": 158,
+            "end_frame": 250,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.16,
+            "coverage": 0.9574468085106383
+          },
+          {
+            "video": 19,
+            "start_frame": 276,
+            "end_frame": 384,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.4,
+            "coverage": 0.9090909090909091
+          },
+          {
+            "video": 20,
+            "start_frame": 40,
+            "end_frame": 380,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 0.9649122807017544
+          },
+          {
+            "video": 21,
+            "start_frame": 260,
+            "end_frame": 500,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 6.72,
+            "coverage": 0.30578512396694213
+          },
+          {
+            "video": 22,
+            "start_frame": 106,
+            "end_frame": 172,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.64,
+            "coverage": 0.7647058823529411
+          },
+          {
+            "video": 23,
+            "start_frame": 620,
+            "end_frame": 2500,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 0.0,
+            "coverage": 0.5334750265674814
+          },
+          {
+            "video": 24,
+            "start_frame": 146,
+            "end_frame": 390,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 2.16,
+            "coverage": 0.7804878048780488
+          },
+          {
+            "video": 25,
+            "start_frame": 300,
+            "end_frame": 440,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.88,
+            "coverage": 0.8450704225352113
+          },
+          {
+            "video": 26,
+            "start_frame": 4,
+            "end_frame": 84,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 27,
+            "start_frame": 166,
+            "end_frame": 1270,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 0.0,
+            "coverage": 0.06148282097649186
+          },
+          {
+            "video": 28,
+            "start_frame": 400,
+            "end_frame": 650,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 31,
+            "start_frame": 740,
+            "end_frame": 2022,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.0,
+            "coverage": 0.6230529595015576
+          },
+          {
+            "video": 32,
+            "start_frame": 60,
+            "end_frame": 2878,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 1.68,
+            "coverage": 0.7184397163120567
+          },
+          {
+            "video": 33,
+            "start_frame": 1110,
+            "end_frame": 1344,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.72,
+            "coverage": 0.4406779661016949
+          },
+          {
+            "video": 34,
+            "start_frame": 90,
+            "end_frame": 544,
+            "detected": false,
+            "cls": "Hiding"
+          },
+          {
+            "video": 35,
+            "start_frame": 4,
+            "end_frame": 404,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 2.32,
+            "coverage": 0.8557213930348259
+          },
+          {
+            "video": 36,
+            "start_frame": 320,
+            "end_frame": 520,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 5.28,
+            "coverage": 0.3465346534653465
+          },
+          {
+            "video": 37,
+            "start_frame": 490,
+            "end_frame": 1810,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.16,
+            "coverage": 0.3827534039334342
+          },
+          {
+            "video": 38,
+            "start_frame": 96,
+            "end_frame": 330,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 39,
+            "start_frame": 380,
+            "end_frame": 790,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 0.0,
+            "coverage": 0.3592233009708738
+          },
+          {
+            "video": 40,
+            "start_frame": 178,
+            "end_frame": 334,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 41,
+            "start_frame": 746,
+            "end_frame": 832,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.56,
+            "coverage": 0.8409090909090909
+          },
+          {
+            "video": 42,
+            "start_frame": 146,
+            "end_frame": 1372,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 5.68,
+            "coverage": 0.8843648208469055
+          },
+          {
+            "video": 43,
+            "start_frame": 470,
+            "end_frame": 770,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 1.6,
+            "coverage": 0.8675496688741722
+          },
+          {
+            "video": 44,
+            "start_frame": 446,
+            "end_frame": 560,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 45,
+            "start_frame": 540,
+            "end_frame": 2600,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 37.2,
+            "coverage": 0.09990300678952474
+          },
+          {
+            "video": 47,
+            "start_frame": 200,
+            "end_frame": 3338,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 1.52,
+            "coverage": 0.9878980891719745
+          },
+          {
+            "video": 48,
+            "start_frame": 506,
+            "end_frame": 592,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 49,
+            "start_frame": 4,
+            "end_frame": 2248,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 1.2,
+            "coverage": 0.8699910952804987
+          },
+          {
+            "video": 50,
+            "start_frame": 262,
+            "end_frame": 394,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 1.28,
+            "coverage": 0.7611940298507462
+          },
+          {
+            "video": 51,
+            "start_frame": 210,
+            "end_frame": 320,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.32,
+            "coverage": 0.9285714285714286
+          },
+          {
+            "video": 52,
+            "start_frame": 160,
+            "end_frame": 240,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 53,
+            "start_frame": 926,
+            "end_frame": 1034,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 54,
+            "start_frame": 56,
+            "end_frame": 2620,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 1.6,
+            "coverage": 0.8191738113795791
+          },
+          {
+            "video": 55,
+            "start_frame": 276,
+            "end_frame": 344,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.48,
+            "coverage": 0.8285714285714286
+          },
+          {
+            "video": 56,
+            "start_frame": 4,
+            "end_frame": 1260,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.56,
+            "coverage": 0.9888712241653418
+          },
+          {
+            "video": 57,
+            "start_frame": 200,
+            "end_frame": 1356,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 8.0,
+            "coverage": 0.8272884283246977
+          },
+          {
+            "video": 58,
+            "start_frame": 4,
+            "end_frame": 782,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 9.28,
+            "coverage": 0.6384615384615384
+          },
+          {
+            "video": 59,
+            "start_frame": 4,
+            "end_frame": 280,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 60,
+            "start_frame": 170,
+            "end_frame": 300,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.24,
+            "coverage": 0.9545454545454546
+          },
+          {
+            "video": 61,
+            "start_frame": 278,
+            "end_frame": 404,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 0.9375
+          },
+          {
+            "video": 62,
+            "start_frame": 1100,
+            "end_frame": 1334,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 63,
+            "start_frame": 60,
+            "end_frame": 344,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 8.96,
+            "coverage": 0.21678321678321677
+          },
+          {
+            "video": 64,
+            "start_frame": 500,
+            "end_frame": 690,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 3.76,
+            "coverage": 0.5104166666666666
+          },
+          {
+            "video": 65,
+            "start_frame": 250,
+            "end_frame": 400,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 4.0,
+            "coverage": 0.34210526315789475
+          },
+          {
+            "video": 66,
+            "start_frame": 56,
+            "end_frame": 574,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 1.12,
+            "coverage": 0.9461538461538461
+          },
+          {
+            "video": 67,
+            "start_frame": 238,
+            "end_frame": 424,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 68,
+            "start_frame": 416,
+            "end_frame": 1900,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 3.52,
+            "coverage": 0.2503364737550471
+          },
+          {
+            "video": 69,
+            "start_frame": 116,
+            "end_frame": 612,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 3.28,
+            "coverage": 0.7228915662650602
+          },
+          {
+            "video": 70,
+            "start_frame": 192,
+            "end_frame": 350,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 71,
+            "start_frame": 430,
+            "end_frame": 690,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.24,
+            "coverage": 0.22137404580152673
+          },
+          {
+            "video": 72,
+            "start_frame": 46,
+            "end_frame": 104,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.32,
+            "coverage": 0.8666666666666667
+          },
+          {
+            "video": 72,
+            "start_frame": 196,
+            "end_frame": 254,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 73,
+            "start_frame": 278,
+            "end_frame": 350,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 74,
+            "start_frame": 830,
+            "end_frame": 1844,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.48,
+            "coverage": 0.7539370078740157
+          },
+          {
+            "video": 75,
+            "start_frame": 60,
+            "end_frame": 1290,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 76,
+            "start_frame": 4,
+            "end_frame": 270,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 1.92,
+            "coverage": 0.8208955223880597
+          },
+          {
+            "video": 78,
+            "start_frame": 500,
+            "end_frame": 752,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 79,
+            "start_frame": 30,
+            "end_frame": 240,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.16,
+            "coverage": 0.9811320754716981
+          },
+          {
+            "video": 80,
+            "start_frame": 580,
+            "end_frame": 680,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.08,
+            "coverage": 0.8627450980392157
+          },
+          {
+            "video": 80,
+            "start_frame": 1026,
+            "end_frame": 1104,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.96,
+            "coverage": 0.7
+          },
+          {
+            "video": 81,
+            "start_frame": 400,
+            "end_frame": 524,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 2.88,
+            "coverage": 0.42857142857142855
+          },
+          {
+            "video": 82,
+            "start_frame": 90,
+            "end_frame": 4210,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 21.68,
+            "coverage": 0.62882096069869
+          },
+          {
+            "video": 83,
+            "start_frame": 880,
+            "end_frame": 2180,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 51.36,
+            "coverage": 0.013824884792626729
+          },
+          {
+            "video": 84,
+            "start_frame": 330,
+            "end_frame": 620,
+            "detected": false,
+            "cls": "BagExchange"
+          },
+          {
+            "video": 85,
+            "start_frame": 226,
+            "end_frame": 510,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 9.6,
+            "coverage": 0.16083916083916083
+          },
+          {
+            "video": 86,
+            "start_frame": 300,
+            "end_frame": 650,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 1.76,
+            "coverage": 0.875
+          },
+          {
+            "video": 87,
+            "start_frame": 90,
+            "end_frame": 210,
+            "detected": false,
+            "cls": "Cycling"
+          },
+          {
+            "video": 88,
+            "start_frame": 80,
+            "end_frame": 260,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.88,
+            "coverage": 0.8791208791208791
+          },
+          {
+            "video": 89,
+            "start_frame": 800,
+            "end_frame": 1004,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 6.08,
+            "coverage": 0.2621359223300971
+          },
+          {
+            "video": 91,
+            "start_frame": 88,
+            "end_frame": 264,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 3.2,
+            "coverage": 0.23595505617977527
+          },
+          {
+            "video": 92,
+            "start_frame": 4,
+            "end_frame": 2870,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 1.6,
+            "coverage": 0.5557880055788006
+          },
+          {
+            "video": 93,
+            "start_frame": 100,
+            "end_frame": 294,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 94,
+            "start_frame": 60,
+            "end_frame": 2800,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 0.16,
+            "coverage": 0.9299781181619255
+          },
+          {
+            "video": 95,
+            "start_frame": 466,
+            "end_frame": 600,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.72,
+            "coverage": 0.8676470588235294
+          },
+          {
+            "video": 96,
+            "start_frame": 186,
+            "end_frame": 354,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 97,
+            "start_frame": 310,
+            "end_frame": 550,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 3.36,
+            "coverage": 0.6528925619834711
+          },
+          {
+            "video": 98,
+            "start_frame": 180,
+            "end_frame": 290,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.88,
+            "coverage": 0.8035714285714286
+          },
+          {
+            "video": 99,
+            "start_frame": 850,
+            "end_frame": 1300,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 0.0,
+            "coverage": 0.8893805309734514
+          },
+          {
+            "video": 100,
+            "start_frame": 20,
+            "end_frame": 200,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.16,
+            "coverage": 0.978021978021978
+          },
+          {
+            "video": 101,
+            "start_frame": 4,
+            "end_frame": 764,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.72,
+            "coverage": 0.9763779527559056
+          },
+          {
+            "video": 102,
+            "start_frame": 48,
+            "end_frame": 110,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.64,
+            "coverage": 0.75
+          },
+          {
+            "video": 103,
+            "start_frame": 4,
+            "end_frame": 80,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.08,
+            "coverage": 0.9743589743589743
+          },
+          {
+            "video": 104,
+            "start_frame": 300,
+            "end_frame": 410,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 105,
+            "start_frame": 4,
+            "end_frame": 618,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 106,
+            "start_frame": 340,
+            "end_frame": 544,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.08,
+            "coverage": 0.9902912621359223
+          },
+          {
+            "video": 107,
+            "start_frame": 160,
+            "end_frame": 244,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 2.56,
+            "coverage": 0.2558139534883721
+          },
+          {
+            "video": 108,
+            "start_frame": 216,
+            "end_frame": 300,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.08,
+            "coverage": 0.9767441860465116
+          },
+          {
+            "video": 109,
+            "start_frame": 96,
+            "end_frame": 204,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 3.6,
+            "coverage": 0.18181818181818182
+          },
+          {
+            "video": 110,
+            "start_frame": 336,
+            "end_frame": 500,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.48,
+            "coverage": 0.927710843373494
+          },
+          {
+            "video": 111,
+            "start_frame": 360,
+            "end_frame": 910,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 7.68,
+            "coverage": 0.4492753623188406
+          },
+          {
+            "video": 112,
+            "start_frame": 130,
+            "end_frame": 600,
+            "detected": true,
+            "cls": "Fighting",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 113,
+            "start_frame": 620,
+            "end_frame": 910,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 115,
+            "start_frame": 286,
+            "end_frame": 360,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 1.92,
+            "coverage": 0.3684210526315789
+          },
+          {
+            "video": 116,
+            "start_frame": 166,
+            "end_frame": 272,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 4.0,
+            "coverage": 0.07407407407407407
+          },
+          {
+            "video": 117,
+            "start_frame": 200,
+            "end_frame": 292,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 118,
+            "start_frame": 4,
+            "end_frame": 992,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 119,
+            "start_frame": 60,
+            "end_frame": 964,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.24,
+            "coverage": 0.5386313465783664
+          },
+          {
+            "video": 120,
+            "start_frame": 266,
+            "end_frame": 414,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 3.52,
+            "coverage": 0.41333333333333333
+          },
+          {
+            "video": 121,
+            "start_frame": 530,
+            "end_frame": 744,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 5.52,
+            "coverage": 0.3611111111111111
+          },
+          {
+            "video": 122,
+            "start_frame": 40,
+            "end_frame": 1978,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 8.48,
+            "coverage": 0.5587628865979382
+          },
+          {
+            "video": 123,
+            "start_frame": 80,
+            "end_frame": 436,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 6.08,
+            "coverage": 0.5754189944134078
+          },
+          {
+            "video": 124,
+            "start_frame": 178,
+            "end_frame": 324,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.64,
+            "coverage": 0.8918918918918919
+          },
+          {
+            "video": 125,
+            "start_frame": 4,
+            "end_frame": 548,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.96,
+            "coverage": 0.7912087912087912
+          },
+          {
+            "video": 126,
+            "start_frame": 40,
+            "end_frame": 300,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 0.48,
+            "coverage": 0.6870229007633588
+          },
+          {
+            "video": 127,
+            "start_frame": 30,
+            "end_frame": 1444,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 4.32,
+            "coverage": 0.9110169491525424
+          },
+          {
+            "video": 128,
+            "start_frame": 200,
+            "end_frame": 280,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 130,
+            "start_frame": 76,
+            "end_frame": 1416,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 1.04,
+            "coverage": 0.28017883755588674
+          },
+          {
+            "video": 131,
+            "start_frame": 200,
+            "end_frame": 424,
+            "detected": false,
+            "cls": "CarryObject"
+          },
+          {
+            "video": 132,
+            "start_frame": 40,
+            "end_frame": 2044,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 4.08,
+            "coverage": 0.905284147557328
+          },
+          {
+            "video": 133,
+            "start_frame": 80,
+            "end_frame": 998,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.08,
+            "coverage": 0.44782608695652176
+          },
+          {
+            "video": 135,
+            "start_frame": 506,
+            "end_frame": 660,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 2.96,
+            "coverage": 0.5256410256410257
+          },
+          {
+            "video": 136,
+            "start_frame": 220,
+            "end_frame": 304,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 137,
+            "start_frame": 60,
+            "end_frame": 3278,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 0.16,
+            "coverage": 0.8726708074534162
+          },
+          {
+            "video": 138,
+            "start_frame": 4,
+            "end_frame": 1960,
+            "detected": true,
+            "cls": "PlayingWithBall",
+            "delay_s": 1.68,
+            "coverage": 0.9785495403472931
+          },
+          {
+            "video": 139,
+            "start_frame": 4,
+            "end_frame": 224,
+            "detected": true,
+            "cls": "Protest",
+            "delay_s": 0.4,
+            "coverage": 0.954954954954955
+          },
+          {
+            "video": 140,
+            "start_frame": 200,
+            "end_frame": 404,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 1.28,
+            "coverage": 0.6019417475728155
+          },
+          {
+            "video": 141,
+            "start_frame": 278,
+            "end_frame": 420,
+            "detected": true,
+            "cls": "Cycling",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          },
+          {
+            "video": 142,
+            "start_frame": 76,
+            "end_frame": 200,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 0.96,
+            "coverage": 0.8095238095238095
+          },
+          {
+            "video": 143,
+            "start_frame": 90,
+            "end_frame": 474,
+            "detected": true,
+            "cls": "Hiding",
+            "delay_s": 1.84,
+            "coverage": 0.8808290155440415
+          },
+          {
+            "video": 144,
+            "start_frame": 496,
+            "end_frame": 618,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 1.44,
+            "coverage": 0.7096774193548387
+          },
+          {
+            "video": 145,
+            "start_frame": 250,
+            "end_frame": 1764,
+            "detected": true,
+            "cls": "Loitering",
+            "delay_s": 0.0,
+            "coverage": 0.9221635883905013
+          },
+          {
+            "video": 146,
+            "start_frame": 200,
+            "end_frame": 394,
+            "detected": true,
+            "cls": "CarryObject",
+            "delay_s": 4.56,
+            "coverage": 0.41836734693877553
+          },
+          {
+            "video": 147,
+            "start_frame": 500,
+            "end_frame": 588,
+            "detected": true,
+            "cls": "Chasing",
+            "delay_s": 2.0,
+            "coverage": 0.4444444444444444
+          },
+          {
+            "video": 148,
+            "start_frame": 330,
+            "end_frame": 2350,
+            "detected": true,
+            "cls": "BagExchange",
+            "delay_s": 9.44,
+            "coverage": 0.12957467853610286
+          },
+          {
+            "video": 149,
+            "start_frame": 1330,
+            "end_frame": 1460,
+            "detected": true,
+            "cls": "SuddenRunning",
+            "delay_s": 0.0,
+            "coverage": 1.0
+          }
+        ],
+        "per_class": {
+          "BagExchange": {
+            "events": 12,
+            "recall": 0.9166666666666666,
+            "delay_median_s": 2.88
+          },
+          "CarryObject": {
+            "events": 36,
+            "recall": 0.8611111111111112,
+            "delay_median_s": 0.64
+          },
+          "Chasing": {
+            "events": 19,
+            "recall": 1.0,
+            "delay_median_s": 0.48
+          },
+          "Cycling": {
+            "events": 12,
+            "recall": 0.9166666666666666,
+            "delay_median_s": 0.0
+          },
+          "Fighting": {
+            "events": 8,
+            "recall": 1.0,
+            "delay_median_s": 1.64
+          },
+          "Hiding": {
+            "events": 11,
+            "recall": 0.45454545454545453,
+            "delay_median_s": 1.84
+          },
+          "Loitering": {
+            "events": 8,
+            "recall": 1.0,
+            "delay_median_s": 2.88
+          },
+          "PlayingWithBall": {
+            "events": 14,
+            "recall": 1.0,
+            "delay_median_s": 1.08
+          },
+          "Protest": {
+            "events": 11,
+            "recall": 1.0,
+            "delay_median_s": 0.4
+          },
+          "SuddenRunning": {
+            "events": 12,
+            "recall": 1.0,
+            "delay_median_s": 0.16
+          }
+        },
+        "val_false_alarms_per_hour": 62.88758843567124
+      },
+      "frames": {
+        "precision": 0.6864328899637243,
+        "recall": 0.6574631705735199,
+        "f1": 0.6716357871323443,
+        "false_alarm_rate": 0.27341740120619124
+      }
+    }
+  }
+}

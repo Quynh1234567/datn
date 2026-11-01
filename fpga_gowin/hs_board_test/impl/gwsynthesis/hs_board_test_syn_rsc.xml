@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="hs_board_top" T_Register="8385(0)" T_Alu="5012(0)" T_Lut="7879(0)" T_MULT9X9="4(0)" T_MULT18X18="14(0)" T_MULTALU36X18="3(0)" T_MULTADDALU18X18="7(0)" T_Bsram="42(0)" T_Ssram="506(0)" T_ROM16="96(0)">
+ <SubModule name="u" Register="1021" Alu="45" Lut="805" T_Register="8385(1021)" T_Alu="5012(45)" T_Lut="7879(805)" T_MULT9X9="4(0)" T_MULT18X18="14(0)" T_MULTALU36X18="3(0)" T_MULTADDALU18X18="7(0)" T_Bsram="42(0)" T_Ssram="506(0)" T_ROM16="96(0)">
+  <SubModule name="g_img" Register="16" Alu="33" Lut="53" MULT9X9="2" T_Register="16(16)" T_Alu="33(33)" T_Lut="53(53)" T_MULT9X9="2(2)"/>
+  <SubModule name="u_hs" Register="38" Lut="68" T_Register="4173(38)" T_Alu="3122(0)" T_Lut="4600(68)" T_MULT18X18="4(0)" T_MULTALU36X18="3(0)" T_MULTADDALU18X18="3(0)" T_Bsram="32(0)" T_Ssram="409(0)" T_ROM16="96(0)">
+   <SubModule name="u_deriv" Register="763" Alu="228" Lut="511" MULT18X18="1" MULTADDALU18X18="1" Ssram="88" T_Register="1699(763)" T_Alu="1359(228)" T_Lut="1158(511)" T_MULT18X18="1(1)" T_MULTADDALU18X18="1(1)" T_Ssram="97(88)">
+    <SubModule name="u_diva" Register="619" Alu="566" Lut="333" Ssram="9" T_Register="619(619)" T_Alu="566(566)" T_Lut="333(333)" T_Ssram="9(9)"/>
+    <SubModule name="u_divb" Register="317" Alu="565" Lut="314" T_Register="317(317)" T_Alu="565(565)" T_Lut="314(314)"/>
+   </SubModule>
+   <SubModule name="u_iter" Register="756" Alu="351" Lut="1809" MULT18X18="2" MULTALU36X18="2" MULTADDALU18X18="1" Ssram="312" T_Register="760(756)" T_Alu="351(351)" T_Lut="1980(1809)" T_MULT18X18="2(2)" T_MULTALU36X18="2(2)" T_MULTADDALU18X18="1(1)" T_Bsram="30(0)" T_Ssram="312(312)">
+    <SubModule name="u_ram" Register="4" Lut="171" Bsram="30" T_Register="4(4)" T_Lut="171(171)" T_Bsram="30(30)"/>
+   </SubModule>
+   <SubModule name="u_feat" Register="1271" Alu="1169" Lut="1170" MULT18X18="1" MULTALU36X18="1" MULTADDALU18X18="1" Bsram="2" ROM16="96" T_Register="1676(1271)" T_Alu="1412(1169)" T_Lut="1394(1170)" T_MULT18X18="1(1)" T_MULTALU36X18="1(1)" T_MULTADDALU18X18="1(1)" T_Bsram="2(2)" T_ROM16="96(96)">
+    <SubModule name="u_sqrt" Register="405" Alu="243" Lut="224" T_Register="405(405)" T_Alu="243(243)" T_Lut="224(224)"/>
+   </SubModule>
+  </SubModule>
+  <SubModule name="g_rep" Register="16" Alu="33" Lut="53" MULT9X9="2" T_Register="16(16)" T_Alu="33(33)" T_Lut="53(53)" T_MULT9X9="2(2)"/>
+  <SubModule name="d_rep" Register="764" Alu="228" Lut="512" MULT18X18="1" MULTADDALU18X18="1" Ssram="88" T_Register="1703(764)" T_Alu="1361(228)" T_Lut="1158(512)" T_MULT18X18="1(1)" T_MULTADDALU18X18="1(1)" T_Ssram="97(88)">
+   <SubModule name="u_diva" Register="622" Alu="567" Lut="333" Ssram="9" T_Register="622(622)" T_Alu="567(567)" T_Lut="333(333)" T_Ssram="9(9)"/>
+   <SubModule name="u_divb" Register="317" Alu="566" Lut="313" T_Register="317(317)" T_Alu="566(566)" T_Lut="313(313)"/>
+  </SubModule>
+  <SubModule name="u_svm" Register="1434" Alu="418" Lut="757" MULT18X18="9" MULTADDALU18X18="3" Bsram="10" T_Register="1434(1434)" T_Alu="418(418)" T_Lut="757(757)" T_MULT18X18="9(9)" T_MULTADDALU18X18="3(3)" T_Bsram="10(10)"/>
+  <SubModule name="u_tx" Register="22" Lut="453" T_Register="22(22)" T_Lut="453(453)"/>
+ </SubModule>
+</Module>

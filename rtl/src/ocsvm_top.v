@@ -21,6 +21,7 @@ module ocsvm_top #(
     output wire led_busy_n,                          // LED tích cực mức thấp (Tang Nano)
     output wire led_anomaly_n
 );
+`undef OCSVM_PARAMS_VH   // file .vh co include guard: bo de MOI module deu nhan duoc localparam
 `include "ocsvm_params.vh"
 
     localparam integer CLKS_PER_BIT = (CLK_HZ + BAUD / 2) / BAUD;

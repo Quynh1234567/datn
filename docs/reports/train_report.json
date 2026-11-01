@@ -1,0 +1,57 @@
+{
+  "model": {
+    "model_type": "ocsvm",
+    "nu": 0.02,
+    "gamma": 0.042,
+    "feature_set": "F4",
+    "descriptor": "grid_flow_hw",
+    "grid": [
+      4,
+      4,
+      "basic"
+    ],
+    "frame_step": 2,
+    "flow": "hs",
+    "history": [
+      {
+        "n_prototypes": 3000,
+        "n_sv": 630
+      },
+      {
+        "n_prototypes": 609,
+        "n_sv": 198
+      },
+      {
+        "n_prototypes": 393,
+        "n_sv": 133
+      },
+      {
+        "n_prototypes": 334,
+        "n_sv": 109
+      }
+    ],
+    "n_train_points": 139285,
+    "sklearn_consistency_err": 2.040034807748725e-15,
+    "threshold_method": "percentile",
+    "alarm": {
+      "on": 0.10077430773681187,
+      "off": 0.039792296018775916,
+      "hold": 12,
+      "median_normal": -0.03885231491384852,
+      "settings": {
+        "hysteresis": true,
+        "off_margin": 0.5,
+        "off_percentile": 85.0,
+        "hold_seconds": 1.0,
+        "video_fps": 25.0
+      }
+    },
+    "tuning_val_video_ids": [],
+    "threshold": 0.10077430773681187
+  },
+  "n_support_vectors": 109,
+  "descriptor_dim": 48,
+  "train_false_alarm_rate": 0.01875291668162401,
+  "tuning": null,
+  "val_false_alarm_rate": 0.020001746877456546
+}

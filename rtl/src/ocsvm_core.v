@@ -32,6 +32,7 @@ module ocsvm_core #(
     output reg  signed [63:0]       f_out,          // dùng ACC_W bit thấp
     output reg                      anomaly
 );
+`undef OCSVM_PARAMS_VH   // file .vh co include guard: bo de MOI module deu nhan duoc localparam
 `include "ocsvm_params.vh"
 
     // ---------------------------------------------------------------- tham số dẫn xuất

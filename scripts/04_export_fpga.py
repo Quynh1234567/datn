@@ -124,7 +124,7 @@ def main():
 def export_hw_vectors(cfg, out, splits, det, fx, sc, vec_dir, log, n_cases=8, max_frames=400):
     """Véc-tơ kiểm thử TỪNG TẦNG cho khối trích đặc trưng (ảnh → … → z → f_q) từ khung thật của tập test,
     cùng hs_params.vh, log_lut.mem, scaler_*_q.mem – xem src/ocsvm_fpga/hwmodel/hs_export.py."""
-    from ocsvm_fpga.features.pipeline import load_sensor_frames
+    from ocsvm_fpga.features.pipeline import hw_params, load_sensor_frames
     from ocsvm_fpga.hwmodel import hs_export as HX
     from ocsvm_fpga.hwmodel import hs_q as HQ
     from ocsvm_fpga.hwmodel import preproc_q as PQ
@@ -147,7 +147,8 @@ def export_hw_vectors(cfg, out, splits, det, fx, sc, vec_dir, log, n_cases=8, ma
     if not cand:
         return None
     lut = HQ.log_lut()
-    motion = [float(HQ.features_q(a, b, lut=lut).mag.mean()) for _, a, _, b in cand]
+    hp = hw_params(cfg)                                # N_ITER theo optical_flow.num_iter
+    motion = [float(HQ.features_q(a, b, hp, lut=lut).mag.mean()) for _, a, _, b in cand]
     order = np.argsort(motion)
     pick = sorted(set([int(order[0])] + [int(k) for k in order[::-1][:n_cases - 1]]))
     pairs = [(cand[k][1], cand[k][3]) for k in pick]
@@ -156,7 +157,7 @@ def export_hw_vectors(cfg, out, splits, det, fx, sc, vec_dir, log, n_cases=8, ma
     def ocsvm(z):
         fq = fx.decision_q(np.atleast_2d(z))
         return int(fq[0]), int(fx.anomaly_q(fq)[0])
-    rows = HX.export_all(pairs, vec_dir, scaler=sc, ocsvm=ocsvm, names=names)
+    rows = HX.export_all(pairs, vec_dir, hp, scaler=sc, ocsvm=ocsvm, names=names)
     log.info(f"Đã xuất {len(rows)} ca véc-tơ khối trích đặc trưng → {vec_dir} (hs_params.vh, mem/, case_XX/)")
     return {"dir": str(vec_dir), "cases": rows}
 

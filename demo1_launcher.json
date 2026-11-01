@@ -1,0 +1,14 @@
+{
+  "config": "configs/hw.yaml",
+  "vivado_bin": "D:/AMDDesignTools/2026.1/Vivado/bin",
+  "gowin_ide": "D:/app/Gowin/Gowin_V1.9.12.04_x64/IDE/bin/gw_ide.exe",
+  "idf_export": "D:/app/Espressif/frameworks/esp-idf-v5.3.5/export.bat",
+  "sim": "xsim",
+  "fpga_port": "COM9 – USB Serial Port (COM9)",
+  "esp_port": "COM5 – USB-Enhanced-SERIAL CH343 (COM5)",
+  "threshold": "",
+  "calib_sec": "60",
+  "clk": "54",
+  "nit": "0",
+  "minutes": "0"
+}

@@ -1,0 +1,543 @@
+diff --git a/configs/hw.yaml b/configs/hw.yaml
+new file mode 100644
+index 0000000..e7c6aa0
+--- /dev/null
++++ b/configs/hw.yaml
+@@ -0,0 +1,21 @@
++# =============================================================================
++#  A4 – Huấn luyện bằng ĐÚNG pipeline số nguyên của phần cứng (đặc tả hs_fixed_point_spec.md bản 0.4)
++#    ESP32: Gauss 5×5 /1024 → ảnh 8 bit · FPGA: Horn–Schunck Q6.6 → lưới 4×4 → bảng log → Q5.10
++#  Đặc trưng lúc train = đặc trưng phần cứng tính ra, khớp từng bit (hwmodel/preproc_q.py, hs_q.py).
++#
++#    python scripts/01_extract_features.py --config configs/hw.yaml --jobs 8
++#    python scripts/02_train.py            --config configs/hw.yaml
++#    python scripts/03_evaluate.py         --config configs/hw.yaml
++#    python scripts/04_export_fpga.py      --config configs/hw.yaml
++#
++#  Kết quả ghi vào outputs_hw/ – mô hình số thực cũ trong outputs/ giữ nguyên để so sánh.
++#  Mọi tham số còn lại (dữ liệu, ν, γ, ngưỡng, làm mượt…) lấy từ default.yaml.
++# =============================================================================
++project:
++  output_dir: outputs_hw
++data:
++  splits_from: outputs/splits.json     # dùng ĐÚNG cách chia tập của mô hình cũ → so sánh công bằng
++preprocess:
++  frames_cache_dir: outputs            # dùng lại cache khung 160×120 đã giải mã (không đọc lại video 1080p)
++features:
++  descriptor: grid_flow_hw
+diff --git a/scripts/01_extract_features.py b/scripts/01_extract_features.py
+index f67eaf0..7341511 100644
+--- a/scripts/01_extract_features.py
++++ b/scripts/01_extract_features.py
+@@ -26,7 +26,12 @@ def main():
+     splits = get_splits(cfg, out, rng)
+     jobs = args.jobs or int(cfg.project.n_jobs)
+     fs = cfg.features.feature_set
+-    if cfg.features.get("descriptor", "covariance") == "grid_flow":
++    if cfg.features.get("descriptor", "covariance") == "grid_flow_hw":
++        from ocsvm_fpga.hwmodel import hs_q
++        log.info(f"Đặc trưng PHẦN CỨNG (grid_flow_hw, đặc tả {getattr(hs_q, 'SPEC_VERSION', '?')}): Gauss số nguyên "
++                 f"→ HS Q{hs_q.DEFAULT.wu - hs_q.DEFAULT.fu - 1}.{hs_q.DEFAULT.fu} → lưới 4×4 → bảng log → 48 chiều "
++                 f"Q5.10 | cache = {feature_signature(cfg)}")
++    elif cfg.features.get("descriptor", "covariance") == "grid_flow":
+         from ocsvm_fpga.features.grid_flow import grid_dim
+         f = cfg.features
+         log.info(f"Đặc trưng lưới ({f.get('grid_stats', 'basic')}{', diff' if f.get('grid_diff') else ''}) → véc-tơ "
+diff --git a/scripts/04_export_fpga.py b/scripts/04_export_fpga.py
+index a2bce3b..9fd4ac0 100644
+--- a/scripts/04_export_fpga.py
++++ b/scripts/04_export_fpga.py
+@@ -47,6 +47,19 @@ def main():
+         x, y = x[sel], (y[sel] if y is not None else None)
+ 
+     fx = FixedPointOCSVM(det, cfg.fpga)
++    hw = cfg.features.get("descriptor", "covariance") == "grid_flow_hw"
++    q_hw = None
++    if hw:
++        # Đường số nguyên của FPGA: đặc trưng Q5.10 (đã là số nguyên) → z = (g − mean_q)·inv_q >> INV_FRAC
++        from ocsvm_fpga.hwmodel import hs_q as HQ
++        sc = HQ.quantize_scaler(det.scaler.mean, det.scaler.scale)
++        lo_d, hi_d = -(1 << (HQ.DEFAULT.data_w - 1)), (1 << (HQ.DEFAULT.data_w - 1)) - 1
++
++        def q_hw(x_raw):
++            g = np.round(np.atleast_2d(x_raw) * (1 << HQ.DEFAULT.data_frac)).astype(np.int64)   # = Xq chính xác
++            z = HQ.standardize_q(g, sc)
++            return z, int(np.sum((z <= lo_d) | (z >= hi_d)))
++        log.info(f"grid_flow_hw: chuẩn hóa số nguyên INV_FRAC = {sc.inv_frac}, mean bão hòa {sc.n_sat_mean}")
+     for w in fx.check_ranges():
+         log.warning(w)
+     log.info(f"Lượng tử hóa: SV {fx.sv_q.shape}, γ_q = {fx.gamma_q} (FRAC {fx.p.gamma_frac}), "
+@@ -59,6 +72,11 @@ def main():
+     f_fix = fx.decision_float_equiv(f_q)
+     lab_float = (det.model.score_from_decision(f_float) > det.threshold).astype(np.uint8)
+     lab_fix = fx.anomaly_q(f_q)
++    if hw:                                    # phần cứng thật dùng z số nguyên, không phải z số thực
++        xq_hw, _ = q_hw(x)
++        f_q_hw = fx.decision_q(xq_hw)
++        lab_hw = fx.anomaly_q(f_q_hw)
++        z_lsb = np.abs(xq_hw - xq)
+     err = np.abs(f_fix - f_float)
+     rep = {
+         "verify_source": src, "n_samples": int(len(x)),
+@@ -68,13 +86,23 @@ def main():
+         "label_agreement_per_frame": float(np.mean(lab_float == lab_fix)),
+         "quant": fx.summary(),
+     }
++    if hw:
++        rep["label_agreement_hw_path"] = float(np.mean(lab_float == lab_hw))
++        rep["z_int_vs_float_lsb_max"] = int(z_lsb.max())
++        rep["z_int_vs_float_lsb_mean"] = float(z_lsb.mean())
+     if y is not None and len(np.unique(y)) == 2:
+         rep["auc_float"] = float(roc_auc_score(y, det.model.score_from_decision(f_float)))
+         rep["auc_fixed"] = float(roc_auc_score(y, det.model.score_from_decision(f_fix)))
++        if hw:
++            rep["auc_hw_path"] = float(roc_auc_score(y, det.model.score_from_decision(fx.decision_float_equiv(f_q_hw))))
+     log.info(f"Sai số |f_fixed − f_float|: max = {rep['decision_abs_err_max']:.3e}, "
+              f"TB = {rep['decision_abs_err_mean']:.3e} ({rep['decision_rel_err_mean']:.2%}) | "
+              f"nhãn trùng khớp = {rep['label_agreement_per_frame']:.4%}"
+              + (f" | AUC float/fixed = {rep['auc_float']:.4f}/{rep['auc_fixed']:.4f}" if "auc_fixed" in rep else ""))
++    if hw:
++        log.info(f"Đường số nguyên FPGA (z_q): lệch z số thực max {rep['z_int_vs_float_lsb_max']} LSB, "
++                 f"TB {rep['z_int_vs_float_lsb_mean']:.2f} | nhãn trùng với mô hình số thực = "
++                 f"{rep['label_agreement_hw_path']:.4%}" + (f" | AUC = {rep['auc_hw_path']:.4f}" if "auc_hw_path" in rep else ""))
+     if sat:
+         lo, hi = -(1 << (fx.p.data_width - 1)), (1 << (fx.p.data_width - 1)) - 1
+         row_sat = ((xq <= lo) | (xq >= hi)).any(1)
+@@ -87,9 +115,51 @@ def main():
+         (log.warning if rate_n > 0.01 and y is not None else log.info)(msg + ("; nên giảm data_frac" if rate_n > 0.01 else ""))
+ 
+     fpga_dir = out / "fpga"
+-    rep["export"] = export_all(fx, cfg, fpga_dir, data["X"], data["y"], rng, log)
++    rep["export"] = export_all(fx, cfg, fpga_dir, data["X"], data["y"], rng, log, quantize_fn=q_hw)
++    if hw:
++        rep["hw_vectors"] = export_hw_vectors(cfg, out, splits, det, fx, sc, fpga_dir / "hs", log)
+     save_json(rep, out / "reports" / "quant_report.json")
+ 
+ 
++def export_hw_vectors(cfg, out, splits, det, fx, sc, vec_dir, log, n_cases=8, max_frames=400):
++    """Véc-tơ kiểm thử TỪNG TẦNG cho khối trích đặc trưng (ảnh → … → z → f_q) từ khung thật của tập test,
++    cùng hs_params.vh, log_lut.mem, scaler_*_q.mem – xem src/ocsvm_fpga/hwmodel/hs_export.py."""
++    from ocsvm_fpga.features.pipeline import load_sensor_frames
++    from ocsvm_fpga.hwmodel import hs_export as HX
++    from ocsvm_fpga.hwmodel import hs_q as HQ
++    from ocsvm_fpga.hwmodel import preproc_q as PQ
++    items = splits.get("test") or splits.get("val") or []
++    if not items:
++        log.warning("Không có video test/val để xuất véc-tơ khối trích đặc trưng")
++        return None
++    item = items[0]
++    frames, fidx = load_sensor_frames(item, cfg, out)
++    dark = float(cfg.preprocess.get("skip_dark_below", 0) or 0)
++    cand, prev = [], None
++    for i, raw in zip(fidx[:max_frames], frames[:max_frames]):
++        g = PQ.gauss5_q(np.ascontiguousarray(raw, np.uint8))
++        if dark > 0 and PQ.frame_sum(g) < dark * g.size:
++            prev = None
++            continue
++        if prev is not None:
++            cand.append((prev[0], prev[1], i, g))
++        prev = (i, g)
++    if not cand:
++        return None
++    lut = HQ.log_lut()
++    motion = [float(HQ.features_q(a, b, lut=lut).mag.mean()) for _, a, _, b in cand]
++    order = np.argsort(motion)
++    pick = sorted(set([int(order[0])] + [int(k) for k in order[::-1][:n_cases - 1]]))
++    pairs = [(cand[k][1], cand[k][3]) for k in pick]
++    names = [f"{item.path.stem} khung {cand[k][0]}→{cand[k][2]}" for k in pick]
++
++    def ocsvm(z):
++        fq = fx.decision_q(np.atleast_2d(z))
++        return int(fq[0]), int(fx.anomaly_q(fq)[0])
++    rows = HX.export_all(pairs, vec_dir, scaler=sc, ocsvm=ocsvm, names=names)
++    log.info(f"Đã xuất {len(rows)} ca véc-tơ khối trích đặc trưng → {vec_dir} (hs_params.vh, mem/, case_XX/)")
++    return {"dir": str(vec_dir), "cases": rows}
++
++
+ if __name__ == "__main__":
+     main()
+diff --git a/scripts/05_infer_video.py b/scripts/05_infer_video.py
+index d05fe0f..569ae6c 100644
+--- a/scripts/05_infer_video.py
++++ b/scripts/05_infer_video.py
+@@ -121,6 +121,12 @@ def main():
+     history = deque(maxlen=args.history)
+     step = max(1, int(pp.frame_step))
+     dark = float(pp.get("skip_dark_below", 0) or 0)
++    hw = cfg.features.get("descriptor", "covariance") == "grid_flow_hw"
++    if hw:
++        from ocsvm_fpga.data.video_reader import to_sensor_frame
++        from ocsvm_fpga.hwmodel import hs_q as HQ
++        from ocsvm_fpga.hwmodel import preproc_q as PQ
++        hw_sc = HQ.quantize_scaler(det.scaler.mean, det.scaler.scale)
+ 
+     cap = cv2.VideoCapture(args.video if args.video else args.camera)
+     if not cap.isOpened():
+@@ -138,14 +144,22 @@ def main():
+         idx += 1
+         if idx % step == 0:                                   # khung đưa vào mô hình (giống lúc huấn luyện)
+             src = apply_masks(frame, args.video or "", pp)
+-            gray = preprocess_frame(src, pp)
+-            if dark > 0 and float(gray.mean()) < dark:        # khung đen → ngắt cặp, như lúc huấn luyện
++            if hw:                                            # đường số nguyên: ảnh uint8 thô, Gauss làm bên trong
++                gray = to_sensor_frame(src, pp)
++                is_dark = dark > 0 and PQ.frame_sum(PQ.gauss5_q(gray)) < dark * gray.size
++            else:
++                gray = preprocess_frame(src, pp)
++                is_dark = dark > 0 and float(gray.mean()) < dark
++            if is_dark:                                       # khung đen → ngắt cặp, như lúc huấn luyện
+                 prev = None
+             else:
+                 if prev is not None:
+                     vec, _, motion = frame_pair_descriptor(prev, gray, cfg)
+                     s_float = float(det.model.score_from_decision(det.decision(vec[None]))[0])
+-                    xq, _ = fx.quantize_input(vec[None])
++                    if hw:                                    # z số nguyên đúng như FPGA
++                        xq = HQ.standardize_q(np.round(vec[None] * 1024).astype(np.int64), hw_sc)
++                    else:
++                        xq, _ = fx.quantize_input(vec[None])
+                     f_q = fx.decision_q(xq)
+                     s_fix = float(det.model.score_from_decision(fx.decision_float_equiv(f_q))[0])
+                     win_float.append(s_float)
+diff --git a/scripts/20_hs_golden.py b/scripts/20_hs_golden.py
+index 25c0c8b..785fd4a 100644
+--- a/scripts/20_hs_golden.py
++++ b/scripts/20_hs_golden.py
+@@ -41,6 +41,11 @@ PQ = _load("preproc_q", HW / "preproc_q.py")
+ HQ = _load("hs_q", HW / "hs_q.py")
+ HX = _load("hs_export", HW / "hs_export.py")
+ STAT = ["u", "v", "|v|"]
++NEED_SPEC = "0.4"
++if getattr(HQ, "SPEC_VERSION", None) != NEED_SPEC or (HQ.DEFAULT.wu, HQ.DEFAULT.fu) != (13, 6):
++    sys.exit(f"LỖI PHIÊN BẢN: {HW / 'hs_q.py'} là bản {getattr(HQ, 'SPEC_VERSION', 'cũ (trước 0.4)')}, "
++             f"u, v = {HQ.DEFAULT.wu} bit/{HQ.DEFAULT.fu} bit lẻ; script cần bản {NEED_SPEC} (Q6.6).\n"
++             "→ Giải nén đè CẢ thư mục src/ocsvm_fpga/hwmodel/ từ a2_golden_hs.zip rồi chạy lại.")
+ 
+ 
+ # --------------------------------------------------------------------------- nguồn khung
+@@ -262,7 +267,7 @@ def sweep(pairs, model):
+ def report(out, s, sw, src, exported, model):
+     f = lambda x, n=4: f"{x:.{n}f}"  # noqa: E731
+     L = ["# Golden Model số nguyên khối trích đặc trưng FPGA – sai số so với pipeline train", "",
+-         f"Thời gian {time.strftime('%Y-%m-%d %H:%M:%S')} · nguồn: {src} · {s['pairs']} cặp khung · "
++         f"Đặc tả {HQ.SPEC_VERSION} · thời gian {time.strftime('%Y-%m-%d %H:%M:%S')} · nguồn: {src} · {s['pairs']} cặp khung · "
+          f"tham số: u, v Q{HQ.DEFAULT.wu - HQ.DEFAULT.fu - 1}.{HQ.DEFAULT.fu} {HQ.DEFAULT.wu} bit, a/b 15 bit 18 bit lẻ, |v| {HQ.DEFAULT.mag_mode}, bảng log 2 vùng", "",
+          "## Sai số đặc trưng (sau nén log, trước chuẩn hóa)", "",
+          "| Nguồn sai số | max | p99 | TB | max theo u / v / \\|v\\| |", "|---|---|---|---|---|"]
+@@ -358,6 +363,14 @@ def selftest():
+     uff, _ = HQ.horn_schunck_float(i1, i2)
+     check(abs(um - uff[10:-10, 10:-10].mean()) < 0.01 and abs(um - 1) < 0.15,
+           f"tầng 3: dịch 1 px → u TB {um:.3f} (số thực {uff[10:-10, 10:-10].mean():.3f})")
++    # 4b. bản nhanh = bản tham chiếu, từng bit
++    ok = True
++    for P in (HQ.DEFAULT, HQ.HSParams(wu=17, fu=10)):
++        for x1, x2 in ((i1, i2), (a, b)):
++            f, r = HQ.horn_schunck_q(x1, x2, P, True), HQ.horn_schunck_q_ref(x1, x2, P, True)
++            ok &= all(np.array_equal(p_, q_) for p_, q_ in ((f.u, r.u), (f.v, r.v), (f.u1, r.u1), (f.v1, r.v1)))
++            ok &= f.n_sat == r.n_sat and f.max_abs_n == r.max_abs_n
++    check(ok, "tầng 3: bản nhanh (bộ đệm cố định, int32) khớp từng bit bản tham chiếu theo đặc tả")
+     # 5. |v|
+     uu = rng.integers(-4096, 4096, 100000)
+     vv = rng.integers(-4096, 4096, 100000)
+diff --git a/src/ocsvm_fpga/cli.py b/src/ocsvm_fpga/cli.py
+index a9f013a..de5d81d 100644
+--- a/src/ocsvm_fpga/cli.py
++++ b/src/ocsvm_fpga/cli.py
+@@ -31,6 +31,10 @@ def setup(args, step: str):
+ def get_splits(cfg, out: Path, rng: np.random.Generator, rebuild: bool = False) -> dict[str, list[VideoItem]]:
+     """Chia tập một lần rồi lưu outputs/splits.json để mọi bước dùng cùng một cách chia."""
+     path = out / "splits.json"
++    src = cfg.data.get("splits_from")                 # dùng lại cách chia của outputs khác (vd outputs_hw ← outputs)
++    if not path.exists() and src and resolve_path(src).exists():
++        path.parent.mkdir(parents=True, exist_ok=True)
++        path.write_text(resolve_path(src).read_text(encoding="utf-8"), encoding="utf-8")
+     if path.exists() and not rebuild:
+         raw = load_json(path)
+         splits = {k: [VideoItem(Path(d["path"]), k, Path(d["labels"]) if d["labels"] else None)
+@@ -51,7 +55,7 @@ def get_splits(cfg, out: Path, rng: np.random.Generator, rebuild: bool = False)
+ def expected_feature_dim(cfg) -> int:
+     """Số chiều véc-tơ đặc trưng mà cấu hình hiện tại sẽ tạo ra."""
+     f = cfg.features
+-    if f.get("descriptor", "covariance") == "grid_flow":
++    if f.get("descriptor", "covariance") in ("grid_flow", "grid_flow_hw"):
+         from .features.grid_flow import grid_dim
+         return grid_dim(f, int(cfg.preprocess.height), int(cfg.preprocess.width))
+     from .features.covariance import descriptor_dim
+diff --git a/src/ocsvm_fpga/export/fpga_exporter.py b/src/ocsvm_fpga/export/fpga_exporter.py
+index 848e39d..f5a3599 100644
+--- a/src/ocsvm_fpga/export/fpga_exporter.py
++++ b/src/ocsvm_fpga/export/fpga_exporter.py
+@@ -97,7 +97,9 @@ def write_c_model_data(fx: FixedPointOCSVM, path: Path, stamp: str) -> None:
+ 
+ 
+ def export_all(fx: FixedPointOCSVM, cfg, out_dir: Path, test_x_raw: np.ndarray | None,
+-               test_y: np.ndarray | None, rng: np.random.Generator, logger=None) -> dict:
++               test_y: np.ndarray | None, rng: np.random.Generator, logger=None, quantize_fn=None) -> dict:
++    """quantize_fn(x_raw) → (x_q, số phần tử bão hòa): cách lượng tử véc-tơ kiểm thử. Mặc định
++    fx.quantize_input (chuẩn hóa số thực); grid_flow_hw truyền đường z số nguyên giống FPGA."""
+     p = fx.p
+     det = fx.det
+     n_sv, dim = fx.sv_q.shape
+@@ -129,7 +131,7 @@ def export_all(fx: FixedPointOCSVM, cfg, out_dir: Path, test_x_raw: np.ndarray |
+         else:
+             sel = rng.choice(len(test_x_raw), k, replace=False)
+         sel = np.sort(sel)
+-        xq, _ = fx.quantize_input(test_x_raw[sel])
++        xq, _ = (quantize_fn or fx.quantize_input)(test_x_raw[sel])
+         fq = fx.decision_q(xq)
+         write_mem(mem / "test_input.mem", xq, p.data_width)
+         write_packed_mem(mem / "test_input_packed.mem", xq, p.data_width)
+@@ -185,7 +187,7 @@ localparam integer SMOOTH_WIN  = {det.smoothing};      // trung binh truot f(x)
+     pp, of, ft = cfg.preprocess, cfg.optical_flow, cfg.features
+     names = FEATURE_SETS[ft.feature_set]
+ 
+-    _g = ft.get("descriptor", "covariance") == "grid_flow"
++    _g = ft.get("descriptor", "covariance") in ("grid_flow", "grid_flow_hw")
+     if _g:
+         from ..features.grid_flow import grid_layout
+         _yv, _xv = grid_layout(ft, int(pp.height), int(pp.width))
+diff --git a/src/ocsvm_fpga/features/pipeline.py b/src/ocsvm_fpga/features/pipeline.py
+index 2d6ef08..2545c7c 100644
+--- a/src/ocsvm_fpga/features/pipeline.py
++++ b/src/ocsvm_fpga/features/pipeline.py
+@@ -12,6 +12,8 @@ from pathlib import Path
+ import numpy as np
+ 
+ from ..config import resolve_path
++from ..hwmodel import hs_q as HQ
++from ..hwmodel import preproc_q as PQ
+ from ..data.dataset import VideoItem, find_annotation, load_frame_labels
+ from ..data.video_reader import iter_sensor_frames, smooth_frame, video_info
+ from .covariance import covariance_descriptor, multi_threshold_descriptors
+@@ -32,11 +34,36 @@ HS_KEYS = ("alpha", "num_iter", "intensity_scale")
+ 
+ def descriptor_kind(cfg) -> str:
+     kind = cfg.features.get("descriptor", "covariance") or "covariance"
+-    if kind not in ("covariance", "grid_flow"):
+-        raise SystemExit(f"features.descriptor phải là covariance | grid_flow, nhận '{kind}'")
++    if kind not in ("covariance", "grid_flow", "grid_flow_hw"):
++        raise SystemExit(f"features.descriptor phải là covariance | grid_flow | grid_flow_hw, nhận '{kind}'")
++    if kind == "grid_flow_hw":
++        check_hw_config(cfg)
+     return kind
+ 
+ 
++def check_hw_config(cfg) -> None:
++    """grid_flow_hw = đặc trưng tính bằng ĐÚNG Golden Model số nguyên của phần cứng
++    (hwmodel/preproc_q: Gauss ESP32 · hwmodel/hs_q: Horn–Schunck + lưới + nén log FPGA).
++    Các tham số của phần cứng là hằng số → cấu hình phải khớp, nếu không thì báo rõ."""
++    pp, of, f = cfg.preprocess, cfg.optical_flow, cfg.features
++    want = {
++        "preprocess.width": (pp.width, HQ.W), "preprocess.height": (pp.height, HQ.H),
++        "preprocess.gaussian_ksize": (pp.gaussian_ksize, 5), "preprocess.gaussian_sigma": (float(pp.gaussian_sigma), 1.0),
++        "optical_flow.method": (of.get("method", "hs"), "hs"), "optical_flow.alpha": (float(of.alpha), 2.0),
++        "optical_flow.num_iter": (int(of.num_iter), HQ.DEFAULT.n_iter),
++        "optical_flow.intensity_scale": (float(of.intensity_scale), 1.0),
++        "features.grid_rows": (int(f.grid_rows), HQ.GRID_R), "features.grid_cols": (int(f.grid_cols), HQ.GRID_C),
++        "features.grid_stats": (f.get("grid_stats", "basic"), "basic"),
++        "features.grid_log_scale": (float(f.get("grid_log_scale", 0) or 0), HQ.DEFAULT.log_c),
++        "features.grid_diff": (bool(f.get("grid_diff", False)), False),
++        "features.grid_row_edges": (f.get("grid_row_edges") or None, None),
++        "features.grid_col_edges": (f.get("grid_col_edges") or None, None),
++    }
++    bad = [f"{k} = {got!r} (phần cứng cần {need!r})" for k, (got, need) in want.items() if got != need]
++    if bad:
++        raise SystemExit("descriptor = grid_flow_hw nhưng cấu hình khác phần cứng:\n  - " + "\n  - ".join(bad))
++
++
+ def threshold_grid(cfg) -> list[float]:
+     """Các ngưỡng chuyển động được tính sẵn trong MỘT lần trích xuất (chỉ đặc trưng hiệp biến)."""
+     if descriptor_kind(cfg) != "covariance":
+@@ -60,6 +87,11 @@ def feature_signature(cfg) -> str:
+     if kind == "covariance":
+         ft = {k: v for k, v in dict(cfg.features).items()
+               if k not in ("motion_threshold", "motion_threshold_grid") + GRID_KEYS}
++    elif kind == "grid_flow_hw":
++        # đặc trưng do Golden Model tính → phụ thuộc phiên bản đặc tả và mọi tham số số học
++        from dataclasses import asdict
++        ft = {"descriptor": "grid_flow_hw", "spec": getattr(HQ, "SPEC_VERSION", "?"),
++              "hs": asdict(HQ.DEFAULT), "gauss": [int(k) for k in PQ.K]}
+     else:
+         # cache theo khối 10×10: cách chia lưới, thống kê, grid_diff, nén biên độ đều áp dụng lúc ĐỌC cache
+         ft = {"descriptor": "grid_flow", "cache": "blocks10"}
+@@ -69,7 +101,7 @@ def feature_signature(cfg) -> str:
+     else:
+         of = {k: v for k, v in of.items() if k not in HS_KEYS}
+     pp = {k: v for k, v in dict(cfg.preprocess).items()
+-          if k != "cache_frames" and not (k == "mask_regions" and not v)}
++          if k not in ("cache_frames", "frames_cache_dir") and not (k == "mask_regions" and not v)}
+     key = json.dumps({"pp": pp, "of": of, "ft": ft,
+                       "grid": threshold_grid(cfg)}, sort_keys=True)
+     return hashlib.md5(key.encode()).hexdigest()[:10]
+@@ -86,7 +118,14 @@ def frames_signature(cfg) -> str:
+ 
+ 
+ def frame_pair_descriptor(prev: np.ndarray, cur: np.ndarray, cfg):
+-    """Một cặp khung (I_i, I_{i+1}) → (vec, C hoặc None, |flow| trung bình)."""
++    """Một cặp khung (I_i, I_{i+1}) → (vec, C hoặc None, |flow| trung bình).
++
++    grid_flow_hw: prev, cur là ảnh uint8 CHƯA làm mượt (to_sensor_frame) – Gauss số nguyên làm bên trong."""
++    if descriptor_kind(cfg) == "grid_flow_hw":
++        if prev.dtype != np.uint8 or cur.dtype != np.uint8:
++            raise ValueError("grid_flow_hw cần ảnh uint8 chưa làm mượt (to_sensor_frame), không phải smooth_frame")
++        vq, motion = hw_pair_features(PQ.gauss5_q(prev), PQ.gauss5_q(cur))
++        return vq.astype(np.float64) / (1 << HQ.DEFAULT.data_frac), None, motion
+     u, v = compute_flow(prev, cur, cfg.optical_flow)
+     motion = float(np.mean(np.hypot(u, v)))
+     if descriptor_kind(cfg) == "grid_flow":
+@@ -99,14 +138,28 @@ def frame_pair_descriptor(prev: np.ndarray, cur: np.ndarray, cfg):
+     return vec, c, motion
+ 
+ 
++def hw_pair_features(g1: np.ndarray, g2: np.ndarray, lut=None) -> tuple[np.ndarray, float]:
++    """Hai ảnh đã Gauss số nguyên → (48 đặc trưng Q5.10 int16 sau nén log, |v| trung bình px).
++    Giống từng bit khối trích đặc trưng trên FPGA."""
++    tr = HQ.features_q(g1, g2, lut=lut)
++    return tr.log_q.astype(np.int16), float(tr.mag.mean()) / (1 << HQ.DEFAULT.fu)
++
++
++def frames_cache_root(cfg, out_root: Path | None) -> Path | None:
++    """Thư mục chứa cache khung: preprocess.frames_cache_dir (dùng chung giữa các outputs_*) hoặc out_root."""
++    d = cfg.preprocess.get("frames_cache_dir")
++    return resolve_path(d) if d else out_root
++
++
+ def load_sensor_frames(item: VideoItem, cfg, out_root: Path | None) -> tuple[np.ndarray, np.ndarray]:
+     """Khung uint8 (N, H, W) + chỉ số khung gốc. Dùng cache nếu preprocess.cache_frames.
+ 
+     Giải mã video 1080p là phần tốn thời gian nhất; cache này chỉ phụ thuộc kích
+     thước/crop/frame_step nên đổi tham số HS hay đặc trưng không phải giải mã lại.
+     """
+-    use_cache = bool(cfg.preprocess.get("cache_frames", False)) and out_root is not None
+-    path = out_root / "frames" / frames_signature(cfg) / item.split / f"{item.uid}.npz" if use_cache else None
++    root = frames_cache_root(cfg, out_root)
++    use_cache = bool(cfg.preprocess.get("cache_frames", False)) and root is not None
++    path = root / "frames" / frames_signature(cfg) / item.split / f"{item.uid}.npz" if use_cache else None
+     if path is not None and path.exists():
+         d = np.load(path)
+         return d["frames"], d["frame_idx"]
+@@ -133,7 +186,21 @@ def extract_video(item: VideoItem, cfg, out_root: Path | None = None) -> dict:
+     dark = float(cfg.preprocess.get("skip_dark_below", 0) or 0)
+     vecs, covs, frame_ids, motion = [], [], [], []
+     prev = None
+-    for idx, raw in zip(fidx, frames):
++    if kind == "grid_flow_hw":
++        lut = HQ.log_lut()
++        for idx, raw in zip(fidx, frames):
++            g = PQ.gauss5_q(np.ascontiguousarray(raw, np.uint8))
++            if dark > 0 and PQ.frame_sum(g) < dark * g.size:   # = TB ảnh Gauss số nguyên < ngưỡng (giống ESP32)
++                prev = None
++                continue
++            if prev is not None:
++                vq, m = hw_pair_features(prev, g, lut)
++                vecs.append(vq)
++                frame_ids.append(int(idx))
++                motion.append(m)
++            prev = g
++    float_frames = () if kind == "grid_flow_hw" else zip(fidx, frames)   # đường số thực (covariance / grid_flow)
++    for idx, raw in float_frames:
+         frame = smooth_frame(raw, cfg.preprocess)
+         if dark > 0 and float(frame.mean()) < dark:     # khung đen/chuyển cảnh → ngắt cặp
+             prev = None
+@@ -151,7 +218,9 @@ def extract_video(item: VideoItem, cfg, out_root: Path | None = None) -> dict:
+         prev = frame
+     info = video_info(item.path)
+     out = {}
+-    if kind == "covariance":
++    if kind == "grid_flow_hw":
++        out["Xq"] = np.stack(vecs).astype(np.int16) if vecs else np.zeros((0, HQ.DIM), np.int16)
++    elif kind == "covariance":
+         d = len(vecs[0][0]) if vecs else 0
+         out["Xg"] = np.asarray(vecs, np.float32).reshape(len(vecs), len(grid), d)
+         out["thr_grid"] = np.asarray(grid, np.float64)
+@@ -231,7 +300,9 @@ def load_split(items: list[VideoItem], cfg, out_root: Path) -> dict:
+             continue
+         d = dict(np.load(path))
+         d["X"] = select_threshold(d, cfg)
+-        if descriptor_kind(cfg) == "grid_flow":
++        if descriptor_kind(cfg) == "grid_flow_hw":       # đã nén log trong phần cứng → chỉ đổi Q5.10 → số thực
++            d["X"] = d["Xq"].astype(np.float64) / (1 << HQ.DEFAULT.data_frac)
++        elif descriptor_kind(cfg) == "grid_flow":
+             f = cfg.features
+             if "B" in d:                                 # ghép lưới từ thống kê khối
+                 ye, xe = grid_layout(f, int(cfg.preprocess.height), int(cfg.preprocess.width))
+diff --git a/src/ocsvm_fpga/hwmodel/hs_export.py b/src/ocsvm_fpga/hwmodel/hs_export.py
+index 9c4fe53..2980347 100644
+--- a/src/ocsvm_fpga/hwmodel/hs_export.py
++++ b/src/ocsvm_fpga/hwmodel/hs_export.py
+@@ -74,11 +74,12 @@ def params_vh(p: hq.HSParams, scaler: hq.ScalerQ | None) -> str:
+     return f"""// ============================================================================
+ // hs_params.vh - sinh tu dong boi src/ocsvm_fpga/hwmodel/hs_export.py
+ // Khoi trich dac trung tren FPGA: dao ham -> Horn-Schunck -> luoi 4x4 -> nen log -> z-score
+-// Dac ta: claude/hs_fixed_point_spec.md (muc 3-8). File ASCII de tuong thich moi cong cu.
++// Dac ta: claude/hs_fixed_point_spec.md ban {getattr(hq, 'SPEC_VERSION', '?')} (muc 3-8). File ASCII.
+ // ============================================================================
+ `ifndef HS_PARAMS_VH
+ `define HS_PARAMS_VH
+ 
++localparam integer UV_FORMAT_CHECK = {p.wu * 100 + p.fu};   // 1306 = Q6.6 13 bit (ban 0.4)
+ localparam integer IMG_W       = {hq.W};
+ localparam integer IMG_H       = {hq.H};
+ // tang 1-2: dao ham x4 va he so a = Ix4/D16, b = Iy4/D16
+diff --git a/src/ocsvm_fpga/hwmodel/hs_q.py b/src/ocsvm_fpga/hwmodel/hs_q.py
+index e777e66..6311ab1 100644
+--- a/src/ocsvm_fpga/hwmodel/hs_q.py
++++ b/src/ocsvm_fpga/hwmodel/hs_q.py
+@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
+ 
+ import numpy as np
+ 
++SPEC_VERSION = "0.4"   # phải trùng claude/hs_fixed_point_spec.md và scripts/20_hs_golden.py
++
+ H, W = 120, 160
+ GRID_R, GRID_C = 4, 4
+ CELL_H, CELL_W = H // GRID_R, W // GRID_C          # 30 × 40 = 1 200 điểm
+@@ -134,6 +136,48 @@ class HSTrace:
+ 
+ 
+ def horn_schunck_q(i1: np.ndarray, i2: np.ndarray, p: HSParams = DEFAULT, keep_iter1: bool = False) -> HSTrace:
++    """Bản nhanh (bộ đệm cấp phát một lần, u và v xử lý chung, số 32 bit khi không thể tràn).
++    Kết quả GIỐNG TỪNG BIT horn_schunck_q_ref – kiểm tra trong scripts/20_hs_golden.py --selftest."""
++    ix, iy, it = derivatives4(i1, i2)
++    d16, a, b = coeffs(ix, iy, p)
++    # int32 an toàn khi (2·cạnh + góc)·AVG_MUL < 2³¹  ⇔  12·2^(wu−1)·AVG_MUL < 2³¹  (wu ≤ 15)
++    dt = np.int32 if 12 * (1 << (p.wu - 1)) * p.avg_mul + (1 << p.avg_shift) < (1 << 31) else np.int64
++    h, w = ix.shape
++    uv = np.zeros((2, h, w), dt)
++    pad = np.zeros((2, h + 2, w + 2), dt)
++    ixd, iyd = ix.astype(dt), iy.astype(dt)
++    itd = (it << p.fu).astype(dt)
++    ab = np.stack([a, b]).astype(np.int64)
++    lo, hi = -(1 << (p.wu - 1)), (1 << (p.wu - 1)) - 1
++    half_avg, half_c = dt(1 << (p.avg_shift - 1)), np.int64(1 << (p.coef_frac - 1))
++    tr = HSTrace(ix, iy, it, d16, a, b, None, None)
++    max_n, n_sat = 0, 0
++    for k in range(p.n_iter):
++        pad[:, 1:-1, 1:-1] = uv                     # biên replicate
++        pad[:, 0, 1:-1] = uv[:, 0]
++        pad[:, -1, 1:-1] = uv[:, -1]
++        pad[:, :, 0] = pad[:, :, 1]
++        pad[:, :, -1] = pad[:, :, -2]
++        e = pad[:, :-2, 1:-1] + pad[:, 2:, 1:-1] + pad[:, 1:-1, :-2] + pad[:, 1:-1, 2:]
++        c = pad[:, :-2, :-2] + pad[:, :-2, 2:] + pad[:, 2:, :-2] + pad[:, 2:, 2:]
++        avg = ((2 * e + c) * dt(p.avg_mul) + half_avg) >> p.avg_shift
++        n = ixd * avg[0] + iyd * avg[1] + itd
++        max_n = max(max_n, int(n.max()), -int(n.min()))
++        new = avg - ((ab * n.astype(np.int64) + half_c) >> p.coef_frac)
++        bad = (new < lo) | (new > hi)
++        if bad.any():
++            n_sat += int(bad.sum())
++            np.clip(new, lo, hi, out=new)
++        uv = new.astype(dt)
++        if k == 0 and keep_iter1:
++            tr.u1, tr.v1 = uv[0].astype(np.int64), uv[1].astype(np.int64)
++    tr.u, tr.v = uv[0].astype(np.int64), uv[1].astype(np.int64)
++    tr.n_sat, tr.max_abs_n = n_sat, max_n
++    return tr
++
++
++def horn_schunck_q_ref(i1: np.ndarray, i2: np.ndarray, p: HSParams = DEFAULT, keep_iter1: bool = False) -> HSTrace:
++    """Bản tham chiếu viết thẳng theo đặc tả (chậm hơn) – dùng để kiểm tra bản nhanh."""
+     ix, iy, it = derivatives4(i1, i2)
+     d16, a, b = coeffs(ix, iy, p)
+     u = np.zeros_like(ix)

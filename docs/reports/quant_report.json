@@ -1,0 +1,134 @@
+{
+  "verify_source": "test",
+  "n_samples": 20000,
+  "input_saturated_elements": 17,
+  "decision_abs_err_max": 0.00048070050907156325,
+  "decision_abs_err_mean": 6.140556473743584e-05,
+  "decision_rel_err_mean": 0.0009922921248908876,
+  "label_agreement_per_frame": 0.9999,
+  "quant": {
+    "data_width": 16,
+    "data_frac": 10,
+    "coef_width": 16,
+    "coef_frac": 14,
+    "gamma_width": 16,
+    "gamma_frac": 20,
+    "lut_addr_bits": 10,
+    "lut_t_max": 16,
+    "lut_width": 16,
+    "acc_width": 48,
+    "lut_shift": 34,
+    "coef_scale": 9.377204599079914,
+    "mode": 0,
+    "gamma_q": 44040,
+    "rho_q": 1073408562,
+    "thr_q": -1014665947,
+    "n_sv": 109,
+    "dim": 48,
+    "widths": {
+      "DIFF_W": 17,
+      "DIST_W": 40,
+      "T_W": 56,
+      "PROD_W": 33,
+      "ACC_W_REQUIRED": 40,
+      "ACC_W": 48
+    }
+  },
+  "label_agreement_hw_path": 0.99985,
+  "z_int_vs_float_lsb_max": 39,
+  "z_int_vs_float_lsb_mean": 6.514554166666667,
+  "auc_float": 0.7184758189760527,
+  "auc_fixed": 0.7184833898432554,
+  "auc_hw_path": 0.7184547910177428,
+  "input_saturated_rows_normal_ratio": 0.0008551068883610451,
+  "export": {
+    "n_sv": 109,
+    "dim": 48,
+    "n_test_vectors": 200
+  },
+  "hw_vectors": {
+    "dir": "D:\\New folder\\ocsvm_anomaly_fpga\\outputs_hw\\fpga\\hs",
+    "cases": [
+      {
+        "case": 0,
+        "name": "000209 khung 14→16",
+        "u_absmax": 58,
+        "v_absmax": 57,
+        "n_sat": 0,
+        "max_abs_N": 1970,
+        "f_q": 370385672,
+        "anomaly": 0
+      },
+      {
+        "case": 1,
+        "name": "000209 khung 150→152",
+        "u_absmax": 531,
+        "v_absmax": 660,
+        "n_sat": 0,
+        "max_abs_N": 11328,
+        "f_q": -1073244969,
+        "anomaly": 1
+      },
+      {
+        "case": 2,
+        "name": "000209 khung 250→252",
+        "u_absmax": 133,
+        "v_absmax": 184,
+        "n_sat": 0,
+        "max_abs_N": 2944,
+        "f_q": -1060874852,
+        "anomaly": 1
+      },
+      {
+        "case": 3,
+        "name": "000209 khung 448→450",
+        "u_absmax": 387,
+        "v_absmax": 395,
+        "n_sat": 0,
+        "max_abs_N": 14784,
+        "f_q": -1072824873,
+        "anomaly": 1
+      },
+      {
+        "case": 4,
+        "name": "000209 khung 462→464",
+        "u_absmax": 780,
+        "v_absmax": 529,
+        "n_sat": 0,
+        "max_abs_N": 23040,
+        "f_q": -816841008,
+        "anomaly": 0
+      },
+      {
+        "case": 5,
+        "name": "000209 khung 464→466",
+        "u_absmax": 528,
+        "v_absmax": 699,
+        "n_sat": 0,
+        "max_abs_N": 25472,
+        "f_q": -761438491,
+        "anomaly": 0
+      },
+      {
+        "case": 6,
+        "name": "000209 khung 466→468",
+        "u_absmax": 643,
+        "v_absmax": 540,
+        "n_sat": 0,
+        "max_abs_N": 23680,
+        "f_q": -683003354,
+        "anomaly": 0
+      },
+      {
+        "case": 7,
+        "name": "000209 khung 498→500",
+        "u_absmax": 291,
+        "v_absmax": 308,
+        "n_sat": 0,
+        "max_abs_N": 14464,
+        "f_q": -1073038909,
+        "anomaly": 1
+      }
+    ]
+  }
+}

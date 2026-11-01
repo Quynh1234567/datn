@@ -1,0 +1,53 @@
+menu "Demo 1 (ĐATN) – camera → SPI → FPGA"
+
+    choice PP_BOARD
+        prompt "Board camera (sơ đồ chân)"
+        default PP_BOARD_S3_EYE
+        config PP_BOARD_S3_EYE
+            bool "ESP32-S3-EYE / Freenove ESP32-S3-WROOM CAM / ESP32-S3-CAM N16R8"
+        config PP_BOARD_XIAO_S3
+            bool "Seeed XIAO ESP32S3 Sense"
+        config PP_BOARD_CUSTOM
+            bool "Tự khai báo trong main/board_pins.h"
+    endchoice
+
+    config PP_XCLK_MHZ
+        int "XCLK (MHz)"
+        range 6 24
+        default 20
+    config PP_TARGET_FPS_X10
+        int "FPS camera × 10 (125 = 12,5 fps)"
+        default 125
+    config PP_AEC_MAX_FOLLOW_VTS
+        bool "Nới phơi sáng tối đa theo VTS"
+        default y
+    config PP_DARK_MEAN
+        int "Ngưỡng khung tối (độ sáng TB ảnh đã làm mượt)"
+        default 15
+    config PP_TARGET_INTERVAL_MS
+        int "Khoảng cách cặp khung (ms)"
+        default 80
+    config PP_TOL_PCT
+        int "Sai lệch cho phép (%)"
+        default 20
+    config PP_WARMUP_FRAMES
+        int "Số khung bỏ lúc đầu"
+        default 30
+
+    config DEMO_SPI_SCLK
+        int "GPIO SPI SCLK → FPGA chân 52"
+        default 14
+    config DEMO_SPI_MOSI
+        int "GPIO SPI MOSI → FPGA chân 53"
+        default 21
+    config DEMO_SPI_CS
+        int "GPIO SPI CS → FPGA chân 71"
+        default 47
+    config DEMO_SPI_HZ
+        int "Tần số SPI (Hz), ≤ 10 MHz (FPGA lấy mẫu ở 54 MHz)"
+        range 1000000 10000000
+        default 8000000
+    config DEMO_PREVIEW_EVERY
+        int "Gửi ảnh xem trước 80×60 cho PC mỗi N khung (0 = tắt)"
+        default 6
+endmenu

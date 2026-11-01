@@ -133,10 +133,13 @@ class HSTrace:
     v1: np.ndarray | None = None
     n_sat: int = 0                     # số lần u/v bị bão hòa (cộng mọi vòng)
     max_abs_n: int = 0                 # |N| lớn nhất (kiểm tra 25 bit)
+    snaps: dict | None = None          # {k: (u, v)} sau k vòng – chỉ khi gọi với snapshots (quét số vòng)
 
 
-def horn_schunck_q(i1: np.ndarray, i2: np.ndarray, p: HSParams = DEFAULT, keep_iter1: bool = False) -> HSTrace:
-    """Bản nhanh (bộ đệm cấp phát một lần, u và v xử lý chung, số 32 bit khi không thể tràn).
+def horn_schunck_q(i1: np.ndarray, i2: np.ndarray, p: HSParams = DEFAULT, keep_iter1: bool = False,
+                   snapshots=None) -> HSTrace:
+    """snapshots: tập số vòng k (1…n_iter) cần lưu (u, v) vào tr.snaps – không đổi kết quả cuối.
+    Bản nhanh (bộ đệm cấp phát một lần, u và v xử lý chung, số 32 bit khi không thể tràn).
     Kết quả GIỐNG TỪNG BIT horn_schunck_q_ref – kiểm tra trong scripts/20_hs_golden.py --selftest."""
     ix, iy, it = derivatives4(i1, i2)
     d16, a, b = coeffs(ix, iy, p)
@@ -171,6 +174,10 @@ def horn_schunck_q(i1: np.ndarray, i2: np.ndarray, p: HSParams = DEFAULT, keep_i
         uv = new.astype(dt)
         if k == 0 and keep_iter1:
             tr.u1, tr.v1 = uv[0].astype(np.int64), uv[1].astype(np.int64)
+        if snapshots and (k + 1) in snapshots:
+            if tr.snaps is None:
+                tr.snaps = {}
+            tr.snaps[k + 1] = (uv[0].astype(np.int64), uv[1].astype(np.int64))
     tr.u, tr.v = uv[0].astype(np.int64), uv[1].astype(np.int64)
     tr.n_sat, tr.max_abs_n = n_sat, max_n
     return tr

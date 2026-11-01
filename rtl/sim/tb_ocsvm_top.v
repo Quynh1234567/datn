@@ -4,6 +4,7 @@
 // -----------------------------------------------------------------------------
 `timescale 1ns/1ps
 module tb_ocsvm_top;
+`undef OCSVM_PARAMS_VH   // file .vh co include guard: bo de MOI module deu nhan duoc localparam
 `include "ocsvm_params.vh"
     localparam integer CLK_HZ = 1_000_000, BAUD = 100_000, BIT_NS = 1_000_000_000 / BAUD;
     parameter integer NVEC = 5;                         // số véc-tơ gửi qua UART

@@ -6,6 +6,7 @@
 // -----------------------------------------------------------------------------
 `timescale 1ns/1ps
 module tb_ocsvm_core;
+`undef OCSVM_PARAMS_VH   // file .vh co include guard: bo de MOI module deu nhan duoc localparam
 `include "ocsvm_params.vh"
     parameter integer P = 8;
 

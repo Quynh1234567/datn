@@ -50,7 +50,6 @@ def check_hw_config(cfg) -> None:
         "preprocess.width": (pp.width, HQ.W), "preprocess.height": (pp.height, HQ.H),
         "preprocess.gaussian_ksize": (pp.gaussian_ksize, 5), "preprocess.gaussian_sigma": (float(pp.gaussian_sigma), 1.0),
         "optical_flow.method": (of.get("method", "hs"), "hs"), "optical_flow.alpha": (float(of.alpha), 2.0),
-        "optical_flow.num_iter": (int(of.num_iter), HQ.DEFAULT.n_iter),
         "optical_flow.intensity_scale": (float(of.intensity_scale), 1.0),
         "features.grid_rows": (int(f.grid_rows), HQ.GRID_R), "features.grid_cols": (int(f.grid_cols), HQ.GRID_C),
         "features.grid_stats": (f.get("grid_stats", "basic"), "basic"),
@@ -60,8 +59,18 @@ def check_hw_config(cfg) -> None:
         "features.grid_col_edges": (f.get("grid_col_edges") or None, None),
     }
     bad = [f"{k} = {got!r} (phần cứng cần {need!r})" for k, (got, need) in want.items() if got != need]
+    if not 1 <= int(of.num_iter) <= 1024:      # số vòng là tham số của RTL (N_ITER) → được phép đổi
+        bad.append(f"optical_flow.num_iter = {of.num_iter} (cần 1…1024)")
     if bad:
         raise SystemExit("descriptor = grid_flow_hw nhưng cấu hình khác phần cứng:\n  - " + "\n  - ".join(bad))
+
+
+def hw_params(cfg) -> "HQ.HSParams":
+    """Tham số số học của phần cứng; chỉ số vòng HS lấy từ cấu hình (quét số vòng, N_ITER của RTL).
+    num_iter = 64 → đúng HQ.DEFAULT → hash cache và mô hình cũ không đổi."""
+    from dataclasses import replace
+    n = int(cfg.optical_flow.num_iter)
+    return HQ.DEFAULT if n == HQ.DEFAULT.n_iter else replace(HQ.DEFAULT, n_iter=n)
 
 
 def threshold_grid(cfg) -> list[float]:
@@ -91,7 +100,7 @@ def feature_signature(cfg) -> str:
         # đặc trưng do Golden Model tính → phụ thuộc phiên bản đặc tả và mọi tham số số học
         from dataclasses import asdict
         ft = {"descriptor": "grid_flow_hw", "spec": getattr(HQ, "SPEC_VERSION", "?"),
-              "hs": asdict(HQ.DEFAULT), "gauss": [int(k) for k in PQ.K]}
+              "hs": asdict(hw_params(cfg)), "gauss": [int(k) for k in PQ.K]}
     else:
         # cache theo khối 10×10: cách chia lưới, thống kê, grid_diff, nén biên độ đều áp dụng lúc ĐỌC cache
         ft = {"descriptor": "grid_flow", "cache": "blocks10"}
@@ -124,7 +133,7 @@ def frame_pair_descriptor(prev: np.ndarray, cur: np.ndarray, cfg):
     if descriptor_kind(cfg) == "grid_flow_hw":
         if prev.dtype != np.uint8 or cur.dtype != np.uint8:
             raise ValueError("grid_flow_hw cần ảnh uint8 chưa làm mượt (to_sensor_frame), không phải smooth_frame")
-        vq, motion = hw_pair_features(PQ.gauss5_q(prev), PQ.gauss5_q(cur))
+        vq, motion = hw_pair_features(PQ.gauss5_q(prev), PQ.gauss5_q(cur), p=hw_params(cfg))
         return vq.astype(np.float64) / (1 << HQ.DEFAULT.data_frac), None, motion
     u, v = compute_flow(prev, cur, cfg.optical_flow)
     motion = float(np.mean(np.hypot(u, v)))
@@ -138,10 +147,10 @@ def frame_pair_descriptor(prev: np.ndarray, cur: np.ndarray, cfg):
     return vec, c, motion
 
 
-def hw_pair_features(g1: np.ndarray, g2: np.ndarray, lut=None) -> tuple[np.ndarray, float]:
+def hw_pair_features(g1: np.ndarray, g2: np.ndarray, lut=None, p=None) -> tuple[np.ndarray, float]:
     """Hai ảnh đã Gauss số nguyên → (48 đặc trưng Q5.10 int16 sau nén log, |v| trung bình px).
-    Giống từng bit khối trích đặc trưng trên FPGA."""
-    tr = HQ.features_q(g1, g2, lut=lut)
+    Giống từng bit khối trích đặc trưng trên FPGA. p = hw_params(cfg) (mặc định HQ.DEFAULT, 64 vòng)."""
+    tr = HQ.features_q(g1, g2, HQ.DEFAULT if p is None else p, lut=lut)
     return tr.log_q.astype(np.int16), float(tr.mag.mean()) / (1 << HQ.DEFAULT.fu)
 
 
@@ -188,13 +197,14 @@ def extract_video(item: VideoItem, cfg, out_root: Path | None = None) -> dict:
     prev = None
     if kind == "grid_flow_hw":
         lut = HQ.log_lut()
+        hp = hw_params(cfg)
         for idx, raw in zip(fidx, frames):
             g = PQ.gauss5_q(np.ascontiguousarray(raw, np.uint8))
             if dark > 0 and PQ.frame_sum(g) < dark * g.size:   # = TB ảnh Gauss số nguyên < ngưỡng (giống ESP32)
                 prev = None
                 continue
             if prev is not None:
-                vq, m = hw_pair_features(prev, g, lut)
+                vq, m = hw_pair_features(prev, g, lut, hp)
                 vecs.append(vq)
                 frame_ids.append(int(idx))
                 motion.append(m)

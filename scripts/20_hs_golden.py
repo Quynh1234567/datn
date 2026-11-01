@@ -8,7 +8,7 @@ và báo sai số từng đặc trưng, theo đơn vị đặc trưng và theo �
 đã train thì so luôn x_q (LSB), f_q và cờ bất thường của OC-SVM.
 
     python scripts/20_hs_golden.py --selftest                       # không cần dữ liệu
-    python scripts/20_hs_golden.py --video data/IITB-Corridor/Test/<video>.avi --pairs 300
+    python scripts/20_hs_golden.py --video data/IITB-Corridor/Test/000228.avi --pairs 800 --sweep  # quét độ rộng u, v và cách tính |v|
     python scripts/20_hs_golden.py --video ... --sweep              # quét độ rộng u, v và cách tính |v|
     python scripts/20_hs_golden.py --frames outputs/rec/<dir>       # chuỗi ảnh PNG liên tiếp (vd ghi từ OV5640)
     python scripts/20_hs_golden.py --video ... --export 8           # xuất véc-tơ RTL vào outputs/hw_vectors/
