@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """BƯỚC 6 – Đánh giá mô hình số thực: AUC/EER/F1 mức khung hình + biểu đồ.
 
-    python scripts/03_evaluate.py
+    python scripts/03_evaluate.py --config configs/hw.yaml
 """
 import sys
 from pathlib import Path
@@ -33,17 +33,18 @@ def evaluate_events(det, cfg, val, test, m, smooth, y, vid, splits, log):
     stems = [it.path.stem for it in splits["test"]]
     cls_by_vid = {int(v): classes.get(stems[v], "?") for v in np.unique(vid)} if classes else None
     plain = (smooth > ap["on"]).astype(np.uint8)
-    held = hysteresis_per_video(smooth, vid, ap["on"], ap["off"], ap["hold"])
+    held = hysteresis_per_video(smooth, vid, ap["on"], ap["off"], ap["hold"], ap.get("on_pairs", 1))
     out = {"params": ap, "fps": fps}
     hold_s = ap["hold"] * cfg.preprocess.frame_step / fps
-    log.info(f"Cảnh báo theo SỰ KIỆN – bật khi điểm > {ap['on']:.4f}; có trễ: tắt khi < {ap['off']:.4f} "
+    log.info(f"Cảnh báo theo SỰ KIỆN – bật khi điểm > {ap['on']:.4f} (có trễ: liên tục {ap.get('on_pairs', 1)} cặp); "
+             f"tắt khi < {ap['off']:.4f} "
              f"liên tục {ap['hold']} cặp khung (≈ {hold_s:.1f} s)")
     for name, al in (("không trễ", plain), ("có trễ", held)):
         ev = event_metrics(y, al, vid, fidx, fps, cls_by_vid)
         fm = frame_metrics_binary(y, al)
         if len(val["X"]):
             av = (sv > ap["on"]).astype(np.uint8) if name == "không trễ" else \
-                hysteresis_per_video(sv, val["video_id"], ap["on"], ap["off"], ap["hold"])
+                hysteresis_per_video(sv, val["video_id"], ap["on"], ap["off"], ap["hold"], ap.get("on_pairs", 1))
             evv = event_metrics(np.zeros(len(sv), np.uint8), av, val["video_id"], val["frame_idx"], fps)
             ev["val_false_alarms_per_hour"] = evv["false_alarms_per_hour"]
         out["hysteresis" if name == "có trễ" else "plain"] = {"events": {k: v for k, v in ev.items()}, "frames": fm}

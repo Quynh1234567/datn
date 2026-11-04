@@ -25,11 +25,24 @@ class Standardizer:
     """z = (x − mean) / scale ; đặc trưng hằng số giữ scale = 1."""
     mean: np.ndarray | None = None
     scale: np.ndarray | None = None
+    floor: float = 0.0                     # mức sàn σ đã dùng (0 = không)
+    n_floored: int = 0                     # số chiều bị nâng lên mức sàn
 
-    def fit(self, x: np.ndarray, min_std: float = 1e-6) -> "Standardizer":
+    def fit(self, x: np.ndarray, min_std: float = 1e-6, floor_rel: float = 0.0,
+            floor_abs: float = 0.0) -> "Standardizer":
+        """floor_rel > 0: σ ≥ floor_rel × trung vị σ của mọi chiều; floor_abs > 0: σ ≥ floor_abs.
+
+        Mức sàn chặn việc một ô hiếm khi có chuyển động (σ rất nhỏ, vd vùng bụi cây) khuếch đại z
+        lên nhiều lần khi có người đi qua → điểm số rơi xuống đáy −ρ (báo động giả)."""
         self.mean = x.mean(axis=0).astype(np.float64)
         std = x.std(axis=0).astype(np.float64)
-        self.scale = np.where(std < min_std, 1.0, std)
+        std = np.where(std < min_std, 1.0, std)
+        floor = float(floor_abs or 0.0)
+        if floor_rel and floor_rel > 0:
+            floor = max(floor, float(floor_rel) * float(np.median(std)))
+        self.floor = floor
+        self.n_floored = int(np.sum(std < floor))
+        self.scale = np.maximum(std, floor) if floor > 0 else std
         return self
 
     def transform(self, x: np.ndarray) -> np.ndarray:

@@ -14,7 +14,10 @@ def fit_detector(x_train: np.ndarray, cfg, rng: np.random.Generator, nu: float |
     m = cfg.model
     if len(x_train) > m.max_train_samples:
         x_train = x_train[rng.choice(len(x_train), m.max_train_samples, replace=False)]
-    scaler = Standardizer().fit(x_train)
+    scaler = Standardizer().fit(x_train, floor_rel=float(m.get("scaler_std_floor_rel", 0.0) or 0.0),
+                                floor_abs=float(m.get("scaler_std_floor", 0.0) or 0.0))
+    if logger and scaler.floor > 0:
+        logger.info(f"  Chuẩn hóa: σ ≥ {scaler.floor:.4g} → nâng {scaler.n_floored}/{len(scaler.scale)} chiều lên mức sàn")
     z = scaler.transform(x_train)
     gamma = resolve_gamma(m.gamma, z) * gamma_mult
     nu = m.nu if nu is None else nu
@@ -34,7 +37,8 @@ def fit_detector(x_train: np.ndarray, cfg, rng: np.random.Generator, nu: float |
                                 "grid": [cfg.features.get("grid_rows"), cfg.features.get("grid_cols"),
                                          cfg.features.get("grid_stats")],
                                 "frame_step": cfg.preprocess.frame_step,
-                                "flow": cfg.optical_flow.get("method", "hs"), **info})
+                                "flow": cfg.optical_flow.get("method", "hs"),
+                                "scaler_std_floor": scaler.floor, "scaler_n_floored": scaler.n_floored, **info})
     det.meta["_train_scores"] = det.score(x_train[: min(len(x_train), 20000)], smooth=False)
     return det, info
 

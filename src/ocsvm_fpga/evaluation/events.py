@@ -1,6 +1,8 @@
 """Cảnh báo có trễ (hysteresis) và đánh giá theo SỰ KIỆN.
 
-Hysteresis: cảnh báo BẬT khi điểm (đã làm mượt) vượt ngưỡng bật `on`; chỉ TẮT khi điểm
+Hysteresis: cảnh báo BẬT khi điểm (đã làm mượt) vượt ngưỡng bật `on` LIÊN TỤC `on_pairs` cặp khung
+(alarm.on_pairs, mặc định 1 = bật ngay ở lần vượt đầu tiên như bản cũ). Ngưỡng bật mặc định = ngưỡng
+của mô hình; alarm.on_percentile = p đặt ngưỡng bật cao hơn = phân vị (100 − p)% điểm bình thường; chỉ TẮT khi điểm
 xuống dưới ngưỡng tắt `off` (< on) LIÊN TỤC `hold` cặp khung. Nhờ vậy điểm dao động quanh
 ngưỡng (người khuất sau cột, đổi hướng…) không làm cảnh báo bật/tắt liên tục.
 
@@ -24,44 +26,56 @@ def alarm_settings(cfg) -> dict:
     op = a.get("off_percentile", 85.0)
     return {"hysteresis": bool(a.get("hysteresis", True)), "off_margin": float(a.get("off_margin", 0.5)),
             "off_percentile": None if op is None else float(op),
-            "hold_seconds": float(a.get("hold_seconds", 1.0)), "video_fps": float(a.get("video_fps", 25.0))}
+            "hold_seconds": float(a.get("hold_seconds", 1.0)), "video_fps": float(a.get("video_fps", 25.0)),
+            "on_pairs": max(1, int(a.get("on_pairs", 1) or 1)),
+            "on_percentile": None if a.get("on_percentile") in (None, "", 0) else float(a.get("on_percentile"))}
 
 
 def alarm_params(det, cfg, normal_scores=None) -> dict:
     """{on, off, hold} – lấy trong det.meta['alarm'] nếu có, nếu không tính từ điểm bình thường."""
     s = alarm_settings(cfg)
     on = float(det.threshold)
+    if s["on_percentile"] is not None and normal_scores is not None and len(normal_scores):
+        # ngưỡng BẬT riêng cho cảnh báo: phân vị (100 − on_percentile)% điểm bình thường kiểm định
+        # (mô hình, ngưỡng của mô hình và phần cứng giữ nguyên – chỉ đổi logic cảnh báo)
+        on = max(on, float(np.percentile(normal_scores, 100.0 - s["on_percentile"])))
     hold = max(0, int(round(s["hold_seconds"] * s["video_fps"] / max(1, int(cfg.preprocess.frame_step)))))
     if not s["hysteresis"]:
-        return {"on": on, "off": on, "hold": 0, "median_normal": None, "settings": s}
+        return {"on": on, "off": on, "hold": 0, "on_pairs": s["on_pairs"], "median_normal": None, "settings": s}
     meta = det.meta.get("alarm") if hasattr(det, "meta") else None
     if (normal_scores is None and meta and meta.get("off") is not None and meta.get("settings") == s
-            and abs(float(meta.get("on", on)) - on) < 1e-12):
+            and (s["on_percentile"] is not None or abs(float(meta.get("on", on)) - on) < 1e-12)):
         return meta                                      # đã tính lúc huấn luyện với đúng cấu hình này
     if normal_scores is None or len(normal_scores) == 0:
-        return {"on": on, "off": on, "hold": hold, "median_normal": None, "settings": s}
+        return {"on": on, "off": on, "hold": hold, "on_pairs": s["on_pairs"], "median_normal": None, "settings": s}
     med = float(np.median(normal_scores))
     if s["off_percentile"] is not None:
         off = min(on, float(np.percentile(normal_scores, s["off_percentile"])))
     else:
         off = on - s["off_margin"] * max(on - med, 0.0)
-    return {"on": on, "off": off, "hold": hold, "median_normal": med, "settings": s}
+    return {"on": on, "off": off, "hold": hold, "on_pairs": s["on_pairs"], "median_normal": med, "settings": s}
 
 
 def alarm_params_need_normal(det, cfg) -> bool:
     """True nếu tham số lưu trong mô hình không khớp cấu hình hiện tại → cần điểm dữ liệu bình thường."""
     meta = det.meta.get("alarm")
-    return not (meta and meta.get("off") is not None and meta.get("settings") == alarm_settings(cfg)
+    s = alarm_settings(cfg)
+    if s["on_percentile"] is not None:
+        return True                                      # ngưỡng bật tính lại từ điểm bình thường
+    return not (meta and meta.get("off") is not None and meta.get("settings") == s
                 and abs(float(meta.get("on", det.threshold)) - float(det.threshold)) < 1e-12)
 
 
-def hysteresis(scores: np.ndarray, on: float, off: float, hold: int) -> np.ndarray:
-    """Cảnh báo 0/1 cho MỘT chuỗi điểm liên tục (một video)."""
+def hysteresis(scores: np.ndarray, on: float, off: float, hold: int, on_pairs: int = 1) -> np.ndarray:
+    """Cảnh báo 0/1 cho MỘT chuỗi điểm liên tục (một video).
+    Bật khi điểm > on liên tục on_pairs cặp; tắt khi điểm < off liên tục hơn hold cặp."""
     out = np.zeros(len(scores), np.uint8)
-    active, below = False, 0
+    active, below, run = False, 0, 0
+    on_pairs = max(1, int(on_pairs))
     for i, s in enumerate(scores):
+        run = run + 1 if s > on else 0
         if not active:
-            if s > on:
+            if run >= on_pairs:
                 active, below = True, 0
         else:
             below = below + 1 if s < off else 0
@@ -71,11 +85,11 @@ def hysteresis(scores: np.ndarray, on: float, off: float, hold: int) -> np.ndarr
     return out
 
 
-def hysteresis_per_video(scores, video_id, on, off, hold) -> np.ndarray:
+def hysteresis_per_video(scores, video_id, on, off, hold, on_pairs: int = 1) -> np.ndarray:
     out = np.zeros(len(scores), np.uint8)
     for v in np.unique(video_id):
         m = np.flatnonzero(video_id == v)
-        out[m] = hysteresis(scores[m], on, off, hold)
+        out[m] = hysteresis(scores[m], on, off, hold, on_pairs)
     return out
 
 

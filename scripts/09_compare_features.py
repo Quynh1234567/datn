@@ -124,7 +124,7 @@ def run_variant(name, overrides, args, log, exp_dir):
     far_val = float(np.mean(sv_val > thr)) if sv_val is not None else float("nan")
     from ocsvm_fpga.evaluation.events import alarm_params, alarm_settings, event_metrics, hysteresis_per_video
     apx = alarm_params(det, cfg, sv_val)
-    held = hysteresis_per_video(s, vid, apx["on"], apx["off"], apx["hold"])
+    held = hysteresis_per_video(s, vid, apx["on"], apx["off"], apx["hold"], apx.get("on_pairs", 1))
     evm = event_metrics(y, held, vid, test["frame_idx"], alarm_settings(cfg)["video_fps"])
 
     # ---- kiểm chứng điểm cố định trên một tập con (bit-accurate như FPGA)

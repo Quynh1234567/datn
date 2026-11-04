@@ -95,6 +95,11 @@ model:
   gamma: 0.042                   # = 2/48 (gấp đôi gamma "scale" của 48 chiều)
   # Ràng buộc phần cứng: số Support Vector tối đa nạp vào BRAM của FPGA
   max_support_vectors: 128
+  # Mức sàn độ lệch chuẩn khi chuẩn hóa z = (x − mean)/σ:  σ ≥ scaler_std_floor_rel × trung vị σ
+  # (và σ ≥ scaler_std_floor nếu > 0). Ô ít người qua (bụi cây) có σ rất nhỏ → người đi qua bị
+  # khuếch đại z gấp nhiều lần → báo nhầm. 0 = tắt (như bản cũ). Chọn bằng scripts/31_tune_false_alarm.py.
+  scaler_std_floor_rel: 0.0
+  scaler_std_floor: 0.0
   # Nén tập huấn luyện bằng MiniBatchKMeans (trọng số mẫu = số phần tử mỗi cụm)
   n_prototypes: 3000             # tự giảm dần nếu số SV vượt ngân sách
   max_train_samples: 200000      # giới hạn số mẫu đưa vào KMeans
@@ -124,6 +129,7 @@ threshold:
 
 
 alarm:
+  on_pairs: 1          # bật cảnh báo khi điểm vượt ngưỡng LIÊN TỤC N cặp khung (1 = ngay lần đầu, như bản cũ)
   off_percentile: 85
   hysteresis: true
   off_margin: 0.5

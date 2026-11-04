@@ -19,3 +19,14 @@ preprocess:
   frames_cache_dir: outputs            # dùng lại cache khung 160×120 đã giải mã (không đọc lại video 1080p)
 features:
   descriptor: grid_flow_hw
+# --- Giảm báo động giả (04/11/2026) – chọn giá trị bằng scripts/31_tune_false_alarm.py rồi bỏ dấu # :
+# model:
+#   scaler_std_floor_rel: 1.0     # σ ≥ 1.0 × trung vị σ (ô ít người qua không còn khuếch đại z)
+#   gamma: 0.021                  # kernel rộng hơn (nhiều người đi sát nhau)
+# alarm:
+#   on_pairs: 3                   # bật cảnh báo khi vượt ngưỡng 3 cặp khung liên tiếp
+# alarm:
+#   on_percentile: 1
+#   on_pairs: 1
+#   off_percentile: 85
+#   hold_seconds: 1

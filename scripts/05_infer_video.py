@@ -7,7 +7,7 @@ VIDEO KẾT QUẢ giữ nguyên bản gốc: màu, độ phân giải và tốc 
 khung viền xanh/đỏ, nhãn NORMAL/ABNORMAL, điểm số và đồ thị điểm theo thời gian.
 
     python scripts/05_infer_video.py --video path/to/clip.avi --save-video
-    python scripts/05_infer_video.py --video data\IITB-Corridor\Test\000255.avi --save-video --show      # xem trực tiếp
+    python scripts/05_infer_video.py --video data\IITB-Corridor\Test\000251.avi --config configs/hw.yaml --save-video --show       # xem trực tiếp
     python scripts/05_infer_video.py --video clip.avi --save-video --scale 0.5 # thu nhỏ video ra
     python scripts/05_infer_video.py --camera 0
 """
@@ -115,8 +115,9 @@ def main():
         except Exception:                               # noqa: BLE001 – không có cache → không trễ
             sv = None
         ap = alarm_params(det, cfg, sv)
-    log.info(f"Cảnh báo: bật > {ap['on']:.4f}, tắt < {ap['off']:.4f} liên tục {ap['hold']} cặp khung")
-    active, below = False, 0
+    on_pairs = int(ap.get("on_pairs", 1))
+    log.info(f"Cảnh báo: bật > {ap['on']:.4f} liên tục {on_pairs} cặp, tắt < {ap['off']:.4f} liên tục {ap['hold']} cặp khung")
+    active, below, run = False, 0, 0
     win_float, win_fix = deque(maxlen=k), deque(maxlen=k)
     history = deque(maxlen=args.history)
     step = max(1, int(pp.frame_step))
@@ -166,8 +167,9 @@ def main():
                     win_fix.append(s_fix)
                     sm_float, sm_fix = float(np.mean(win_float)), float(np.mean(win_fix))
                     raw_alarm = int(sm_fix > ap["on"])
-                    if not active:                       # (a) cảnh báo có trễ
-                        active, below = bool(raw_alarm), 0
+                    run = run + 1 if raw_alarm else 0
+                    if not active:                       # (a) cảnh báo có trễ: bật khi vượt ngưỡng on_pairs cặp liên tiếp
+                        active, below = run >= on_pairs, 0
                     else:
                         below = below + 1 if sm_fix < ap["off"] else 0
                         active = below <= ap["hold"]

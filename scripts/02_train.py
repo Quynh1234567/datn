@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """BƯỚC 5 – Huấn luyện One-Class SVM trên véc-tơ hiệp biến của video bình thường.
 
-    python scripts/02_train.py
+    python scripts/02_train.py --config configs/hw.yaml
     python scripts/02_train.py --set model.nu=0.02 model.max_support_vectors=128
     python scripts/02_train.py --set tuning.enabled=true        # tìm (ν, γ) tự động
 """
