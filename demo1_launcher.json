@@ -6,9 +6,12 @@
   "sim": "xsim",
   "fpga_port": "COM9 – USB Serial Port (COM9)",
   "esp_port": "COM5 – USB-Enhanced-SERIAL CH343 (COM5)",
-  "threshold": "",
+  "threshold": "-1070000000",
   "calib_sec": "60",
   "clk": "54",
   "nit": "0",
-  "minutes": "0"
+  "minutes": "0",
+  "esp_baud": "2000000",
+  "rec_minutes": "10",
+  "smooth": "7"
 }

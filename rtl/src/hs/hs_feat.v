@@ -152,7 +152,15 @@ module hs_feat #(
     wire signed [39:0] mr  = (prod + (40'sd1 <<< (CELL_SHIFT - 1))) >>> CELL_SHIFT;
     wire        [16:0] amx = mean_d[15] ? -{mean_d[15], mean_d} : {1'b0, mean_d};
     wire signed [33:0] zr  = (zp + (34'sd1 <<< (INV_FRAC - 1))) >>> INV_FRAC;
-    wire signed [16:0] gm  = $signed({g_d[15], g_d}) - $signed({smean[d][15], smean[d]});
+    // μ và 1/σ đọc ROM MỘT lần vào thanh ghi ở F_MUL, rồi mới mở rộng dấu từ thanh ghi.
+    // Bản cũ viết $signed({smean[d][15], smean[d]}) (chọn bit trên phần tử mảng chỉ số biến):
+    // mô phỏng đúng nhưng Gowin tổng hợp mất bit dấu → μ âm thành 65536-|μ| → z bão hòa ±32768
+    // (đúng 6 giá trị d = 4,13,16,25,28,37 có μ < 0 sai trên board).
+    reg        [15:0] mu_r, inv_r;
+    wire signed [16:0] mu17 = {mu_r[15], mu_r};
+    wire signed [16:0] g17  = {g_d[15], g_d};
+    wire signed [16:0] gm   = g17 - mu17;
+    wire signed [17:0] inv18 = {2'b00, inv_r};
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -165,6 +173,8 @@ module hs_feat #(
             F_MUL: begin
                 s_d  <= acc_rd;
                 prod <= acc_rd * CELL_MUL;
+                mu_r  <= smean[d];
+                inv_r <= sinv[d];
                 fs   <= F_MEAN;
             end
             F_MEAN: begin                                         // sat16
@@ -188,7 +198,7 @@ module hs_feat #(
                 fs  <= F_OUT;
             end
             F_OUT: begin
-                zp <= gm * $signed({1'b0, sinv[d]});
+                zp <= gm * inv18;
                 fs <= F_DONE;
             end
             F_DONE: begin

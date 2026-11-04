@@ -1,0 +1,17 @@
+[1/9] Performing build step for 'bootloader'
+[1/1] C:\Windows\system32\cmd.exe /C "cd /D D:\datn\ocsvm_anomaly_fpga\firmware\esp32_demo\build\bootloader\esp-idf\esptool_py && D:\app\Espressif\python_env\idf5.3_py3.10_env\Scripts\python.exe D:/app/Espressif/frameworks/esp-idf-v5.3.5/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader/bootloader.bin"
+Bootloader binary size 0x5440 bytes. 0x2bc0 bytes (34%) free.
+[2/9] No install step for 'bootloader'
+[3/9] Completed 'bootloader'
+[4/9] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/app_main.c.obj
+[5/9] Linking C static library esp-idf\main\libmain.a
+[6/9] Generating ld/sections.ld
+[7/9] Linking CXX executable esp32_demo.elf
+[8/9] Generating binary image from built executable
+esptool.py v4.12.0
+Creating esp32s3 image...
+Merged 2 ELF sections
+Successfully created esp32s3 image.
+Generated D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/esp32_demo.bin
+[9/9] C:\Windows\system32\cmd.exe /C "cd /D D:\datn\ocsvm_anomaly_fpga\firmware\esp32_demo\build\esp-idf\esptool_py && D:\app\Espressif\python_env\idf5.3_py3.10_env\Scripts\python.exe D:/app/Espressif/frameworks/esp-idf-v5.3.5/components/partition_table/check_sizes.py --offset 0x8000 partition --type app D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/partition_table/partition-table.bin D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/esp32_demo.bin"
+esp32_demo.bin binary size 0x51de0 bytes. Smallest app partition is 0x100000 bytes. 0xae220 bytes (68%) free.

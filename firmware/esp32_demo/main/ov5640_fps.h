@@ -12,8 +12,10 @@ typedef struct {
     double period_before_us, period_after_us, err_pct;
 } fps_result_t;
 
-/* Khởi tạo camera theo board_pins.h. Trả mã lỗi của esp_camera_init(). */
-esp_err_t ov_cam_start(int xclk_mhz, int fb_count, bool grab_latest, bool fb_in_psram);
+/* Khởi tạo camera theo board_pins.h. Trả mã lỗi của esp_camera_init().
+ * color = false: PIXFORMAT_GRAYSCALE (Y8, 1 byte/điểm)
+ * color = true : PIXFORMAT_YUV422    (Y U Y V, 2 byte/điểm) – kênh Y là cùng ảnh xám Y8 của cảm biến */
+esp_err_t ov_cam_start(int xclk_mhz, int fb_count, bool grab_latest, bool fb_in_psram, bool color);
 
 /* Bỏ n khung đầu */
 void ov_cam_warmup(int n);
@@ -27,3 +29,6 @@ double ov_cam_measure_period_us(int n);
 /* Đặt FPS = fps_x10 / 10 bằng VTS, tắt night mode; aec_follow: nới phơi sáng tối đa = VTS − 4.
  * In log #INFO fps_ctrl_*. */
 fps_result_t ov5640_set_fps(int fps_x10, bool aec_follow);
+
+/* Ghi lại VTS nếu camera đã tự đổi (giữ đúng 12,5 fps). Trả VTS đọc được trước khi sửa. */
+int ov5640_hold_vts(int vts, bool aec_follow);

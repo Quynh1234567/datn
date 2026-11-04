@@ -1,0 +1,7 @@
+--- WARNING: GDB cannot open serial ports accessed as COMx
+--- NOTE: Using \\.\COM5 instead...
+--- esp-idf-monitor 1.10.0 on \\.\COM5 115200
+--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H
+--- NOTE: IDF Monitor will decode all received data and close. If you want to stop the monitor immediately, press exit key again.
+--- Multiple stop commands received, forcing quit monitor
+

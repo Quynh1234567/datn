@@ -9,8 +9,8 @@
 -ph
 -timing
 -cst_error
--place_option 0
--route_option 0
+-place_option 2
+-route_option 2
 -retiming_resource none
 -clock_route_order 0
 -correct_hold 1

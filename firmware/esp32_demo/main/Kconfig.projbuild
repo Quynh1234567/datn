@@ -47,7 +47,30 @@ menu "Demo 1 (ĐATN) – camera → SPI → FPGA"
         int "Tần số SPI (Hz), ≤ 10 MHz (FPGA lấy mẫu ở 54 MHz)"
         range 1000000 10000000
         default 8000000
+    config DEMO_COLOR_PREVIEW
+        bool "Ảnh xem trước MÀU gốc 160×120 (camera chạy YUV422, HS vẫn dùng kênh Y)"
+        default y
+        help
+            Bật: camera chạy YUV422; ESP32 tách kênh Y (= ảnh xám Y8 như chế độ GRAYSCALE) để làm mượt
+            và gửi FPGA, còn PC nhận ảnh màu 160×120 chưa làm mượt (dòng PC …).
+            Tắt: như bản cũ – camera GRAYSCALE, xem trước xám 80×60 (dòng PV …).
+
+    choice DEMO_YUV_ORDER
+        prompt "Vị trí byte Y trong YUV422"
+        depends on DEMO_COLOR_PREVIEW
+        default DEMO_YUV_Y_AUTO
+        config DEMO_YUV_Y_AUTO
+            bool "Tự dò lúc khởi động (log #INFO yuv_detect)"
+        config DEMO_YUV_Y_FIRST
+            bool "Y U Y V (YUYV – mặc định của driver OV5640)"
+        config DEMO_YUV_Y_SECOND
+            bool "U Y V Y (UYVY)"
+    endchoice
+
     config DEMO_PREVIEW_EVERY
-        int "Gửi ảnh xem trước 80×60 cho PC mỗi N khung (0 = tắt)"
-        default 6
+        int "Gửi ảnh xem trước cho PC mỗi N khung (0 = tắt)"
+        default 8
+        help
+            Ảnh màu 160×120 ≈ 38 400 ký tự base64; 921 600 baud ≈ 92 000 ký tự/s.
+            N = 8 → ~1,6 ảnh/s (≈ 60 % đường truyền). Giảm N nếu muốn mượt hơn nhưng không dưới 5.
 endmenu

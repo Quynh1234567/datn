@@ -45,6 +45,10 @@ module hs_board_test #(
     wire [15:0] x_data;
     wire [1:0]  phase;
     wire [31:0] n_sat, cycles;
+    wire        g_we, g_ov, g_rv;
+    wire [25:0] g_wd, g_ouv;
+    wire [5:0]  g_rd;
+    wire [23:0] g_rs;
     hs_pixgen g_img (.clk(clk), .rst_n(rstn), .start(go), .valid(pv), .ready(pr), .data(pd));
     hs_engine #(.LUT_FILE(LUT_FILE), .MEAN_FILE(MEAN_FILE), .INV_FILE(INV_FILE)) u_hs (
         .clk(clk), .rst_n(rstn), .start(go),
@@ -52,7 +56,8 @@ module hs_board_test #(
         .dw_valid(dwv), .dw_ready(1'b1), .dw_data(dwd),
         .dr_req(drq), .dr_valid(drv), .dr_ready(drr), .dr_data(drd),
         .x_we(x_we), .x_addr(x_addr), .x_data(x_data), .svm_start(svm_start),
-        .busy(busy), .done(done), .phase(phase), .n_sat(n_sat), .cycles(cycles));
+        .busy(busy), .done(done), .phase(phase), .n_sat(n_sat), .cycles(cycles),
+        .dbg_we(g_we), .dbg_wd(g_wd), .dbg_ov(g_ov), .dbg_ouv(g_ouv), .dbg_rv(g_rv), .dbg_rd(g_rd), .dbg_rs(g_rs));
 
     // ---------------------------------------------------------------- "SDRAM" thay thế: tính lại gói
     reg  rp_start;
@@ -97,13 +102,57 @@ module hs_board_test #(
     always @(posedge clk) if (x_we && x_addr < 8'd48) zbuf[x_addr[5:0]] <= x_data;
     always @(posedge clk) if (go) wcnt <= 0; else if (x_we) wcnt <= wcnt + 1'b1;
 
+    // ---------------------------------------------------------------- GỠ LỖI TỪNG TẦNG: dòng "DB" (không phụ thuộc mô hình)
+    // hash 32 bit h = ((h << 5) + h) ^ x theo đúng thứ tự luồng – scripts/25_hs_board_test.py tính giá trị đúng
+    //   H_DW : 19 200 gói DERIV của hs_engine (x = gói[31:0] ^ gói[63:32])
+    //   H_DR : 19 200 gói DERIV đầu tiên vào hs_iter (khối DERIV thứ hai)
+    //   H_I1 : 19 200 lần ghi uv_ram đầu tiên = u, v sau vòng 1 (x = {v, u} 26 bit)
+    //   H_FN : luồng u, v vòng cuối vào FEAT · N_FN số điểm · S_U, S_V tổng u, v vòng cuối · CS 48 tổng ô (24 bit)
+    function [31:0] hstep; input [31:0] h, x; hstep = ((h << 5) + h) ^ x; endfunction
+    reg [31:0] h_dw, h_dr, h_i1, h_fn, s_u, s_v;
+    reg [15:0] n_dw, n_dr, n_i1, n_fn;
+    always @(posedge clk) begin
+        if (go) begin
+            h_dw <= 32'd5381; h_dr <= 32'd5381; h_i1 <= 32'd5381; h_fn <= 32'd5381; s_u <= 0; s_v <= 0;
+            n_dw <= 0; n_dr <= 0; n_i1 <= 0; n_fn <= 0;
+        end else begin
+            if (dwv && n_dw < 16'd19200) begin h_dw <= hstep(h_dw, dwd[31:0] ^ dwd[63:32]); n_dw <= n_dw + 1'b1; end
+            if (drv && drr && n_dr < 16'd19200) begin h_dr <= hstep(h_dr, drd[31:0] ^ drd[63:32]); n_dr <= n_dr + 1'b1; end
+            if (g_we && n_i1 < 16'd19200) begin h_i1 <= hstep(h_i1, {6'd0, g_wd}); n_i1 <= n_i1 + 1'b1; end
+            if (g_ov) begin
+                h_fn <= hstep(h_fn, {6'd0, g_ouv}); n_fn <= n_fn + 1'b1;
+                s_u  <= s_u + {{19{g_ouv[12]}}, g_ouv[12:0]};
+                s_v  <= s_v + {{19{g_ouv[25]}}, g_ouv[25:13]};
+            end
+        end
+    end
+    wire [24*48-1:0] cs_flat;
+    genvar gc;
+    generate for (gc = 0; gc < 48; gc = gc + 1) begin : csg
+        reg [23:0] r;
+        always @(posedge clk) if (g_rv && g_rd == gc) r <= g_rs;
+        assign cs_flat[(47 - gc) * 24 +: 24] = r;                     // ô 0 đứng đầu dòng
+    end endgenerate
+    wire [32*6+16-1:0] db_head = {h_dw, h_dr, h_i1, h_fn, n_fn, s_u, s_v};
+    localparam integer NDB = (32 * 6 + 16 + 24 * 48) / 4;              // 340 chữ số hex
+    wire [32*6+16+24*48-1:0] dbv = {db_head, cs_flat};
+    reg  [8:0] ci3;
+    wire [8:0] k3 = ci3 - 9'd3;
+    reg  [7:0] ch3;
+    always @(*) begin
+        if (ci3 == 0) ch3 = "D"; else if (ci3 == 1) ch3 = "B"; else if (ci3 == 2) ch3 = " ";
+        else if (ci3 < NDB + 3) ch3 = hx(dbv[(NDB - 1 - k3) * 4 +: 4]);
+        else if (ci3 == NDB + 3) ch3 = 8'h0D; else ch3 = 8'h0A;
+    end
+
     // ---------------------------------------------------------------- điều khiển + UART
     localparam integer NCH = 58;
     reg [31:0] r_c, r_f, r_s;
     reg [15:0] r_z, nrun;
     reg        r_a;
     reg [2:0]  ms;
-    localparam [2:0] M_GO = 3'd0, M_RUN = 3'd1, M_TX = 3'd2, M_TXW = 3'd3, M_TX2 = 3'd4, M_TXW2 = 3'd5;
+    localparam [2:0] M_GO = 3'd0, M_RUN = 3'd1, M_TX = 3'd2, M_TXW = 3'd3, M_TX2 = 3'd4, M_TXW2 = 3'd5,
+                     M_TX3 = 3'd6, M_TXW3 = 3'd7;
     reg [7:0]  ci2;                                       // ký tự của dòng ZV (0 … 201)
     localparam integer NCH2 = 202;
     reg [5:0]  ci;
@@ -146,7 +195,7 @@ module hs_board_test #(
         end
         else if (ci2 == 200) ch2 = 8'h0D; else ch2 = 8'h0A;
     end
-    wire [7:0] tx_ch = (ms == M_TX2 || ms == M_TXW2) ? ch2 : ch;
+    wire [7:0] tx_ch = (ms == M_TX3 || ms == M_TXW3) ? ch3 : (ms == M_TX2 || ms == M_TXW2) ? ch2 : ch;
     uart_tx #(.CLKS_PER_BIT(CLK_HZ / BAUD)) u_tx (.clk(clk), .rst_n(rstn), .data(tx_ch), .send(send),
                                                   .tx(uart_tx), .busy(tx_busy));
     always @(posedge clk or negedge rstn) begin
@@ -168,8 +217,13 @@ module hs_board_test #(
             end
             M_TX2:  if (!tx_busy && !send) begin send <= 1'b1; ms <= M_TXW2; end
             M_TXW2: if (tx_busy) begin
-                if (ci2 == NCH2 - 1) ms <= M_GO;
+                if (ci2 == NCH2 - 1) begin ci3 <= 0; ms <= M_TX3; end
                 else begin ci2 <= ci2 + 1'b1; ms <= M_TX2; end
+            end
+            M_TX3:  if (!tx_busy && !send) begin send <= 1'b1; ms <= M_TXW3; end
+            M_TXW3: if (tx_busy) begin
+                if (ci3 == NDB + 4) ms <= M_GO;
+                else begin ci3 <= ci3 + 1'b1; ms <= M_TX3; end
             end
             endcase
         end

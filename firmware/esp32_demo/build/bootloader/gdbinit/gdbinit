@@ -1,0 +1,2 @@
+source D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader/gdbinit/symbols
+source D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader/gdbinit/connect

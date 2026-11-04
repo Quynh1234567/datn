@@ -11,7 +11,7 @@
 
 static bool s_on;
 
-esp_err_t ov_cam_start(int xclk_mhz, int fb_count, bool grab_latest, bool fb_in_psram)
+esp_err_t ov_cam_start(int xclk_mhz, int fb_count, bool grab_latest, bool fb_in_psram, bool color)
 {
     if (s_on) {
         esp_camera_deinit();
@@ -38,7 +38,7 @@ esp_err_t ov_cam_start(int xclk_mhz, int fb_count, bool grab_latest, bool fb_in_
         .xclk_freq_hz = xclk_mhz * 1000000,
         .ledc_timer = LEDC_TIMER_0,
         .ledc_channel = LEDC_CHANNEL_0,
-        .pixel_format = PIXFORMAT_GRAYSCALE,
+        .pixel_format = color ? PIXFORMAT_YUV422 : PIXFORMAT_GRAYSCALE,
         .frame_size = FRAMESIZE_QQVGA,
         .jpeg_quality = 12,
         .fb_count = fb_count,
@@ -145,4 +145,21 @@ fps_result_t ov5640_set_fps(int fps_x10, bool aec_follow)
     printf("#INFO fps_ctrl=%s target_fps=%.2f period_ms=%.3f err_pct=%.3f vts=%d\n", r.ok ? "OK" : "APPROX",
            1e6 / target_us, p / 1000, r.err_pct, vts);
     return r;
+}
+
+/* Giữ VTS: một số chế độ (YUV, tự phơi sáng) có thể ghi lại VTS khiến FPS trôi về ~19 fps.
+ * Gọi định kỳ: nếu VTS hiện tại khác giá trị đã chốt thì ghi lại. Trả VTS đọc được trước khi sửa. */
+int ov5640_hold_vts(int vts, bool aec_follow)
+{
+    sensor_t *s = esp_camera_sensor_get();
+    int cur = reg16(s, 0x380E, 0x380F);
+    if (vts > 0 && cur != vts) {
+        wreg16(s, 0x380E, 0x380F, vts);
+        if (aec_follow) {
+            wreg16(s, 0x3A02, 0x3A03, vts - 4);
+            wreg16(s, 0x3A14, 0x3A15, vts - 4);
+        }
+        s->set_reg(s, 0x3A00, 0x04, 0x00);
+    }
+    return cur;
 }

@@ -37,6 +37,9 @@ DEFAULTS = {
     "clk": "54",
     "nit": "0",
     "minutes": "0",
+    "esp_baud": "921600",
+    "rec_minutes": "10",
+    "smooth": "7",
 }
 
 
@@ -114,7 +117,7 @@ class Launcher(tk.Tk):
 
         tabs = [("0. Cài đặt", self._tab_settings), ("1. Kiểm tra máy", self._tab_check),
                 ("2. Dữ liệu + Mô phỏng", self._tab_sim), ("3. FPGA (Gowin)", self._tab_fpga),
-                ("4. ESP32-S3", self._tab_esp), ("5. CHẠY DEMO", self._tab_demo), ("6. Báo cáo", self._tab_report)]
+                ("4. ESP32-S3", self._tab_esp), ("5. CHẠY DEMO", self._tab_demo), ("6. Báo cáo", self._tab_report), ("7. Ghi dữ liệu", self._tab_record)]
         for name, fn in tabs:
             f = ttk.Frame(nb, padding=12)
             nb.add(f, text=name)
@@ -214,6 +217,8 @@ class Launcher(tk.Tk):
                    "④ Monitor", lambda: self.idf(f"-p {self.port('esp_port')} monitor", new_window=True,
                                                  need=("esp_port",)))
         self._step(f, 5, "Khi build lỗi lạ hoặc đổi baud: xóa bản build cũ.", "fullclean", lambda: self.idf("fullclean"))
+        self._step(f, 6, "Đọc log ESP32 8 giây (không reset ESP32) theo “Baud ESP32” ở tab 5: phải thấy F seq=… và PV.",
+                   "⑥ Xem log ESP32", lambda: self.serial_peek("esp_port", int(self.vars["esp_baud"].get() or 115200), 8))
 
     def _tab_demo(self, f):
         ttk.Label(f, text="Trước khi chạy: thoát mọi monitor (ESP-IDF, Gowin Programmer) để giải phóng cổng COM.",
@@ -224,6 +229,11 @@ class Launcher(tk.Tk):
         ttk.Entry(opt, textvariable=self.vars["calib_sec"], width=6).pack(side="left", padx=(4, 14))
         ttk.Label(opt, text="Ngưỡng f_q đã lưu").pack(side="left")
         ttk.Entry(opt, textvariable=self.vars["threshold"], width=16).pack(side="left", padx=(4, 14))
+        ttk.Label(opt, text="Baud ESP32").pack(side="left")
+        ttk.Combobox(opt, textvariable=self.vars["esp_baud"], values=["115200", "921600", "1500000", "2000000"], width=9).pack(
+            side="left", padx=(4, 14))
+        ttk.Label(opt, text="Làm mượt cờ (k)").pack(side="left")
+        ttk.Entry(opt, textvariable=self.vars["smooth"], width=4).pack(side="left", padx=(4, 14))
         ttk.Label(opt, text="Tự dừng sau (phút, 0 = bấm q)").pack(side="left")
         ttk.Entry(opt, textvariable=self.vars["minutes"], width=6).pack(side="left", padx=4)
         self._step(f, 2, "LẦN ĐẦU ở phòng demo: để cảnh BÌNH THƯỜNG trong thời gian hiệu chỉnh; ngưỡng tự được lưu.",
@@ -234,6 +244,30 @@ class Launcher(tk.Tk):
                    "▶ Chạy chỉ FPGA", lambda: self.demo(calib=False, esp=False))
         self._step(f, 5, "Mở thư mục kết quả các lần chạy (CSV, summary.json, ảnh chụp).", "📂 Kết quả demo",
                    lambda: self.open_dir(ROOT / "outputs_hw" / "demo_runs"))
+
+    def _tab_record(self, f):
+        ttk.Label(f, text="Ghi cảnh thật để train lại (firmware phải bật DEMO_RECORD trong menuconfig, baud 921600).",
+                  style="Head.TLabel").grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 8))
+        opt = ttk.Frame(f)
+        opt.grid(row=1, column=0, columnspan=3, sticky="w", pady=4)
+        ttk.Label(opt, text="Thời lượng (phút)").pack(side="left")
+        ttk.Entry(opt, textvariable=self.vars["rec_minutes"], width=6).pack(side="left", padx=4)
+        self._step(f, 2, "Cảnh BÌNH THƯỜNG để huấn luyện (phòng trống, đi bộ chậm) – nên 10–15 phút, chia vài phiên.",
+                   "● Ghi bình thường → Train", lambda: self.record("normal", False))
+        self._step(f, 3, "Cảnh BÌNH THƯỜNG để đánh giá (khác lúc ghi Train) – 2 phút.",
+                   "● Ghi bình thường → Test", lambda: self.record("normal", True))
+        self._step(f, 4, "Cảnh BẤT THƯỜNG để đánh giá (chạy, vung tay, ngã giả) – 2 phút.",
+                   "● Ghi bất thường → Test", lambda: self.record("abnormal", True))
+        self._step(f, 5, "Mở thư mục dữ liệu đã ghi.", "📂 data/scene_demo",
+                   lambda: self.open_dir(ROOT / "data" / "scene_demo"))
+
+    def record(self, label, test):
+        if not self._need(("esp_port",)):
+            return
+        args = [str(ROOT / "scripts" / "29_record_scene.py"), "--port", self.port("esp_port"), "--baud",
+                self.vars["esp_baud"].get() or "921600", "--label", label,
+                "--minutes", self.vars["rec_minutes"].get() or "10"] + (["--test"] if test else [])
+        self.run([PY] + args, f"Ghi dữ liệu ({label}{', Test' if test else ''})")
 
     def _tab_report(self, f):
         ttk.Label(f, text="Số liệu chứng minh tăng tốc.", style="Head.TLabel").grid(
@@ -364,8 +398,8 @@ class Launcher(tk.Tk):
 
     def export_data(self):
         cfg = self.vars["config"].get()
-        cmd = (f'"{PY}" scripts/04_export_fpga.py --config {cfg} && '
-               f'"{PY}" scripts/15_export_rtl.py --config {cfg} --lanes 8')
+        cmd = (f'"{PY}" scripts/04_export_fpga.py --config "{cfg}" && '
+               f'"{PY}" scripts/15_export_rtl.py --config "{cfg}" --lanes 8')
         self.run(cmd, "Xuất dữ liệu (04 + 15)", shell=True)
 
     def sim(self, extra):
@@ -419,16 +453,17 @@ class Launcher(tk.Tk):
     def serial_peek(self, key, baud, sec):
         if not self._need((key,)):
             return
-        self.run([PY, str(ROOT / "scripts" / "demo1_uart_peek.py"), self.port(key), str(baud), str(sec)],
+        self.run([PY, str(ROOT / "scripts" / "demo1_uart_peek.py"), self.port(key), str(baud), str(sec)]
+                 + (["esp"] if key == "esp_port" else []),
                  f"Đọc UART {self.port(key)} trong {sec} s")
 
     def demo(self, calib, esp=True):
         need = ("fpga_port",) + (("esp_port",) if esp else ())
         if not self._need(need):
             return
-        args = ["--fpga", self.port("fpga_port")]
+        args = ["--fpga", self.port("fpga_port"), "--smooth", self.vars["smooth"].get() or "7"]
         if esp:
-            args += ["--esp", self.port("esp_port")]
+            args += ["--esp", self.port("esp_port"), "--esp-baud", self.vars["esp_baud"].get() or "115200"]
         if self.vars["minutes"].get() not in ("", "0"):
             args += ["--minutes", self.vars["minutes"].get()]
         if calib:

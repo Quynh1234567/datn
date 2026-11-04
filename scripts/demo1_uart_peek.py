@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Đọc và in các dòng UART trong N giây: python scripts/demo1_uart_peek.py COM5 115200 10"""
+"""Đọc và in các dòng UART trong N giây: python scripts/demo1_uart_peek.py COM9 115200 10   (thêm \"esp\" cho cổng ESP32)"""
 import sys
 import time
 
@@ -8,8 +8,16 @@ import serial
 
 def main():
     port, baud, sec = sys.argv[1], int(sys.argv[2]), float(sys.argv[3])
+    esp = len(sys.argv) > 4 and sys.argv[4] == "esp"
     n = 0
-    with serial.Serial(port, baud, timeout=0.2) as s:
+    s = serial.Serial()
+    s.port, s.baudrate, s.timeout = port, baud, 0.2
+    if esp:                # ESP32 (CH343): không kéo DTR/RTS → không reset / kẹt chế độ nạp
+        s.dtr = False
+        s.rts = False
+    # FPGA (BL616 trên Tang Nano): GIỮ DTR mặc định – chip này chỉ chuyển dữ liệu khi DTR được bật
+    s.open()
+    with s:
         t0 = time.time()
         while time.time() - t0 < sec:
             line = s.readline()

@@ -41,7 +41,15 @@ module hs_engine #(
     output reg         done,
     output reg  [1:0]  phase,                         // 0 rỗi · 1 DERIV · 2 HS_ITER (+FEAT) · 3 FEAT
     output wire [31:0] n_sat,
-    output reg  [31:0] cycles                         // số chu kỳ từ start tới done (đo hiệu năng)
+    output reg  [31:0] cycles,                        // số chu kỳ từ start tới done (đo hiệu năng)
+    // gỡ lỗi (top thử board): ghi uv_ram, luồng u, v vòng cuối, 48 tổng ô
+    output wire        dbg_we,
+    output wire [25:0] dbg_wd,
+    output wire        dbg_ov,
+    output wire [25:0] dbg_ouv,
+    output wire        dbg_rv,
+    output wire [5:0]  dbg_rd,
+    output wire [23:0] dbg_rs
 );
     wire d_done, d_busy, i_done, i_busy, f_done;
     wire        o_valid;
@@ -55,11 +63,14 @@ module hs_engine #(
 
     hs_iter #(.NIT(NIT)) u_iter (.clk(clk), .rst_n(rst_n), .start(i_start),
         .in_valid(dr_valid), .in_ready(dr_ready), .in_data(dr_data),
-        .out_valid(o_valid), .out_u(o_u), .out_v(o_v), .done(i_done), .busy(i_busy), .n_sat(n_sat), .iter(iter));
+        .out_valid(o_valid), .out_u(o_u), .out_v(o_v), .done(i_done), .busy(i_busy), .n_sat(n_sat), .iter(iter),
+        .dbg_we(dbg_we), .dbg_wd(dbg_wd));
+    assign dbg_ov  = o_valid;
+    assign dbg_ouv = {o_v, o_u};
 
     hs_feat #(.LUT_FILE(LUT_FILE), .MEAN_FILE(MEAN_FILE), .INV_FILE(INV_FILE)) u_feat (
         .clk(clk), .rst_n(rst_n), .start(i_start), .in_valid(o_valid), .in_u(o_u), .in_v(o_v),
-        .mag_valid(), .mag(), .res_valid(), .res_d(), .res_sum(), .res_mean(), .res_log(), .res_z(),
+        .mag_valid(), .mag(), .res_valid(dbg_rv), .res_d(dbg_rd), .res_sum(dbg_rs), .res_mean(), .res_log(), .res_z(),
         .x_we(x_we), .x_addr(x_addr), .x_data(x_data), .done(f_done));
 
     assign dr_req = (phase == 2'd2);

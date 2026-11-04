@@ -48,9 +48,9 @@ module ocsvm_core #(
 
     // ---------------------------------------------------------------- bộ nhớ
     reg [P*DATA_W-1:0]      sv_rom   [0:NWORD-1];
-    reg [COEF_W-1:0]        alpha_rom[0:N_SV-1];
+    reg [COEF_W-1:0]        alpha_rom[0:N_SV-1] /* synthesis syn_romstyle = "distributed_rom" */;
     reg [LUT_W-1:0]         lut_rom  [0:LUT_SIZE-1];
-    reg signed [DATA_W-1:0] xmem     [0:DIM-1];
+    reg signed [DATA_W-1:0] xmem     [0:DIM-1] /* synthesis syn_ramstyle = "registers" */;  // 8 cổng đọc song song
     initial begin
         $readmemh(SV_FILE, sv_rom);
         $readmemh(ALPHA_FILE, alpha_rom);
@@ -115,12 +115,19 @@ module ocsvm_core #(
     // ---------------------------------------------------------------- S2: hiệu x − sv (P làn)
     reg signed [DIFF_W-1:0] diff [0:P-1];
     reg          c_v, c_first, c_last, c_svlast;
-    integer l;
-    always @(posedge clk) begin
-        for (l = 0; l < P; l = l + 1)
-            diff[l] <= $signed({xmem[b_g * P + l][DATA_W-1], xmem[b_g * P + l]})
-                     - $signed({sv_word[l*DATA_W + DATA_W-1], sv_word[l*DATA_W +: DATA_W]});
-    end
+    // Mỗi làn đọc phần tử xmem ra một wire RIÊNG rồi mới lấy bit dấu từ wire đó.
+    // Không viết xmem[b_g*P+l][DATA_W-1] (chọn bit trên phần tử mảng chỉ số biến): Gowin tổng hợp
+    // mất bit dấu ở kiểu này (đã gặp ở hs_feat: μ âm → z bão hòa) dù mô phỏng vẫn đúng.
+    genvar gl;
+    generate
+        for (gl = 0; gl < P; gl = gl + 1) begin : lane
+            wire        [DATA_W-1:0] xw  = xmem[b_g * P + gl];
+            wire        [DATA_W-1:0] sw  = sv_word[gl*DATA_W +: DATA_W];
+            wire signed [DATA_W:0]   x_s = {xw[DATA_W-1], xw};
+            wire signed [DATA_W:0]   s_s = {sw[DATA_W-1], sw};
+            always @(posedge clk) diff[gl] <= x_s - s_s;
+        end
+    endgenerate
     always @(posedge clk or negedge rst_n)
         if (!rst_n) begin c_v <= 1'b0; c_first <= 1'b0; c_last <= 1'b0; c_svlast <= 1'b0; end
         else begin c_v <= b_v; c_first <= b_first; c_last <= b_last; c_svlast <= b_svlast; end

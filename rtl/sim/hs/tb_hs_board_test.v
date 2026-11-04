@@ -12,7 +12,8 @@ module tb_hs_board_test;
     localparam real BIT_NS = 37.0 * 234;          // 234 chu kỳ / bit
     reg [7:0] b;
     integer i, n;
-    reg [8*80-1:0] line;
+    reg [8*400-1:0] line;
+    integer nl = 0;
     initial begin
         n = 0; line = 0;
         forever begin
@@ -21,10 +22,11 @@ module tb_hs_board_test;
             for (i = 0; i < 8; i = i + 1) begin b[i] = tx; #(BIT_NS); end
             if (b == 8'h0A) begin
                 $display("UART: %0s", line);
-                $finish;
-            end else if (b != 8'h0D) line = {line[8*79-1:0], b};
+                line = 0; nl = nl + 1;
+                if (nl == 3) $finish;                      // HS, ZV, DB
+            end else if (b != 8'h0D) line = {line[8*399-1:0], b};
             n = n + 1;
         end
     end
-    initial begin #500_000_000; $display("FAIL: het thoi gian"); $finish; end
+    initial begin #900_000_000; $display("FAIL: het thoi gian"); $finish; end
 endmodule

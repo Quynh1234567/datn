@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/CMakeFiles/bootloader
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/CMakeFiles/bootloader.rule
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/CMakeFiles/bootloader-complete.rule
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+D:/datn/ocsvm_anomaly_fpga/firmware/esp32_demo/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule

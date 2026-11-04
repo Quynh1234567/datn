@@ -44,6 +44,61 @@ def vh_int(path: Path, name: str):
     return int(m.group(1)) if m else None
 
 
+def _hash(words) -> int:
+    h = 5381
+    for x in words:
+        h = (((h << 5) + h) & 0xFFFFFFFF) ^ (int(x) & 0xFFFFFFFF)
+    return h
+
+
+def expected_db(p=None) -> dict:
+    """Giá trị đúng của dòng gỡ lỗi 'DB' (không phụ thuộc mô hình): hash từng tầng + 48 tổng ô."""
+    from ocsvm_fpga.hwmodel import hs_export as HX, hs_q as HQ
+    p = p or HQ.DEFAULT
+    tr = HQ.features_q(pattern(), pattern(DX, DY), p, keep_iter1=True)
+    hs = tr.hs
+    pk = [int(w) for w in HX.pack([(hs.ix4, 11), (hs.iy4, 11), (hs.it4, 11), (hs.a, p.coef_w), (hs.b, p.coef_w)])]
+    hp = _hash([(w & 0xFFFFFFFF) ^ (w >> 32) for w in pk])
+    m13 = (1 << 13) - 1
+    uv1 = [((int(v) & m13) << 13) | (int(u) & m13) for u, v in zip(hs.u1.ravel(), hs.v1.ravel())]
+    uvf = [((int(v) & m13) << 13) | (int(u) & m13) for u, v in zip(hs.u.ravel(), hs.v.ravel())]
+    return {"H_DW": hp, "H_DR": hp, "H_I1": _hash(uv1), "H_FN": _hash(uvf), "N_FN": 19200,
+            "S_U": int(hs.u.sum()) & 0xFFFFFFFF, "S_V": int(hs.v.sum()) & 0xFFFFFFFF,
+            "CS": [int(x) & 0xFFFFFF for x in tr.sums.reshape(-1)],
+            "u": hs.u, "v": hs.v, "u1": hs.u1, "v1": hs.v1, "sums": tr.sums.reshape(-1)}
+
+
+def check_db(raw: str, e: dict, log):
+    """Dòng 'DB …' (340 hex): chỉ ra tầng ĐẦU TIÊN khác Golden."""
+    m = re.match(r"DB ([0-9A-F]{340})", raw.strip())
+    if not m:
+        log.info(f"  (DB lỗi định dạng) {raw[:60]}")
+        return
+    h = m.group(1)
+    g = {"H_DW": int(h[0:8], 16), "H_DR": int(h[8:16], 16), "H_I1": int(h[16:24], 16), "H_FN": int(h[24:32], 16),
+         "N_FN": int(h[32:36], 16), "S_U": int(h[36:44], 16), "S_V": int(h[44:52], 16)}
+    cs = [int(h[52 + 6 * i:58 + 6 * i], 16) for i in range(48)]
+    names = {"H_DW": "gói DERIV (khối 1)", "H_DR": "gói DERIV vào HS_ITER (khối 2)", "H_I1": "u, v sau vòng 1",
+             "H_FN": "u, v sau vòng cuối", "N_FN": "số điểm vòng cuối", "S_U": "Σu vòng cuối", "S_V": "Σv vòng cuối"}
+    first = None
+    for k in ("H_DW", "H_DR", "H_I1", "H_FN", "N_FN", "S_U", "S_V"):
+        ok = g[k] == e[k]
+        log.info(f"  DB {names[k]:<30}: board {g[k]:08X} | Golden {e[k]:08X}  {'✔' if ok else '✘'}")
+        if not ok and first is None:
+            first = names[k]
+    bad = [i for i in range(48) if cs[i] != e["CS"][i]]
+    sx = lambda x: x - (1 << 24) if x >= 1 << 23 else x  # noqa: E731
+    log.info(f"  DB 48 tổng ô: {48 - len(bad)}/48 khớp")
+    for i in bad[:12]:
+        log.info(f"     tổng[{i:2d}] ô {i // 3:2d} ({STAT[i % 3]:>3}): board {sx(cs[i]):9d} | Golden {sx(e['CS'][i]):9d}")
+    if first:
+        log.info(f"  → TẦNG SAI ĐẦU TIÊN: {first}")
+    elif bad:
+        log.info("  → u, v đúng tới vòng cuối nhưng tổng ô sai → lỗi trong FEAT (cộng dồn / chọn ô)")
+    else:
+        log.info("  → mọi tầng tới tổng ô đều đúng → lỗi (nếu có) nằm sau tổng ô: mean / log / z")
+
+
 def expected(cfg, out: Path, hs_dir: Path, log) -> dict:
     from ocsvm_fpga.hwmodel import hs_export as HX, hs_q as HQ
     from ocsvm_fpga.quantization.golden_model import FixedPointOCSVM
@@ -184,6 +239,11 @@ def listen(port: str, exp: dict, n_lines: int, log):
                 continue
             if raw.startswith("ZV "):
                 check_zv(raw, exp, log)
+                continue
+            if raw.startswith("DB "):
+                if "db" not in exp:
+                    exp["db"] = expected_db()
+                check_db(raw, exp["db"], log)
                 continue
             r = parse(raw)
             if r is None:

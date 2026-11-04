@@ -34,7 +34,9 @@ module hs_iter #(
     output reg         done,
     output reg         busy,
     output reg  [31:0] n_sat,                  // số lần bão hòa u/v (gỡ lỗi)
-    output reg  [6:0]  iter                    // vòng hiện tại
+    output reg  [6:0]  iter,                   // vòng hiện tại
+    output wire        dbg_we,                 // gỡ lỗi: lệnh ghi uv_ram (theo thứ tự quét)
+    output wire [25:0] dbg_wd
 );
 `undef HS_PARAMS_VH
 `include "hs_params.vh"
@@ -51,6 +53,8 @@ module hs_iter #(
     reg         ram_re;
     reg  [14:0] ram_ra;
     wire [25:0] ram_rd;
+    assign dbg_we = ram_we;
+    assign dbg_wd = ram_wd;
     hs_uv_ram u_ram (.clk(clk), .we(ram_we), .waddr(ram_wa), .wdata(ram_wd),
                      .re(ram_re), .raddr(ram_ra), .rdata(ram_rd));
 
