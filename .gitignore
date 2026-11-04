@@ -1,7 +1,7 @@
 # Bỏ qua dữ liệu video và cache
 /data/
 outputs*/
-
+firmware/*/build/
 # Bỏ qua các file model nặng và rác python
 *.joblib
 __pycache__/
