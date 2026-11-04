@@ -6,8 +6,8 @@
     (G = DIM/P, phần tử nhỏ nhất ở bit thấp) – đúng thứ tự ocsvm_core.v đọc
   • sinh run_sim.bat / run_sim.sh (Icarus Verilog)
 
-    python scripts/15_export_rtl.py --lanes 8
-    cd rtl/build && run_sim.bat
+    python scripts/15_export_rtl.py --config configs/hw.yaml --lanes 8
+
 """
 import argparse
 import math

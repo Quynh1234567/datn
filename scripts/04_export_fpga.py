@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """BƯỚC 7 – Lượng tử hóa điểm cố định, kiểm chứng Golden Model, xuất file cho FPGA/ESP32.
 
-    python scripts/04_export_fpga.py
+    python scripts/04_export_fpga.py --config configs/hw.yaml
     python scripts/04_export_fpga.py --set fpga.data_frac=11 fpga.exp_lut_addr_bits=11
 """
 import sys

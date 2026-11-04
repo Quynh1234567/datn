@@ -25,8 +25,8 @@ features:
 #   gamma: 0.021                  # kernel rộng hơn (nhiều người đi sát nhau)
 # alarm:
 #   on_pairs: 3                   # bật cảnh báo khi vượt ngưỡng 3 cặp khung liên tiếp
-# alarm:
-#   on_percentile: 1
-#   on_pairs: 1
-#   off_percentile: 85
-#   hold_seconds: 1
+alarm:
+  on_percentile: 1
+  on_pairs: 1
+  off_percentile: 85
+  hold_seconds: 1

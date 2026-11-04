@@ -6,8 +6,8 @@ f_q bằng số nguyên thuần (vòng lặp như phần cứng tuần tự) r�
 test_expected_score.mem / test_expected_label.mem. Nếu PASS thì định dạng file,
 thứ tự phần tử, bù hai và tham số trong .vh đều nhất quán.
 
-    python scripts/06_verify_mem_files.py                       # outputs/fpga
-    python scripts/06_verify_mem_files.py --dir outputs_synthetic/fpga
+    python scripts/06_verify_mem_files.py                    
+    python scripts/06_verify_mem_files.py --dir outputs_hw/fpga
 """
 import argparse
 import re
